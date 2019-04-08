@@ -11,29 +11,23 @@ import top.fols.box.statics.XStaticFixedValue;
 import top.fols.box.util.XEncodingDetect;
 import top.fols.box.util.XEncodingUtils;
 
-public class XInputStreamReaderRow extends XInterfaceRandomAccessInputStream
-{
-	private XInterfaceRandomAccessInputStream stream;
+public class XInputStreamReaderRow<T extends XInterfaceRandomAccessInputStream> extends XInterfaceRandomAccessInputStream {
+	private T stream;
 	private Object sync = new Object();
 	private Charset streamEncoding;
 	private byte[] rLSplit = XStaticFixedValue.String_NextLineN.getBytes();
-	public void setLineSplitChar(char[] originLine)
-	{
-		synchronized (sync)
-		{
+	public void setLineSplitChar(char[] originLine) {
+		synchronized (sync) {
 			rLSplit = XEncodingUtils.chars2Bytes(originLine, streamEncoding);
 		}
 	}
-	public XInputStreamReaderRow(XInterfaceRandomAccessInputStream in) throws IOException
-	{
+	public XInputStreamReaderRow(T in) throws IOException {
 		this(in, XStream.default_streamByteArrBuffSize);
 	}
-	public XInputStreamReaderRow(XInterfaceRandomAccessInputStream in, int buffSize) throws IOException
-	{
+	public XInputStreamReaderRow(T in, int buffSize) throws IOException {
 		this(in, buffSize, null);
 	}
-	public XInputStreamReaderRow(XInterfaceRandomAccessInputStream in, int buffSize, Charset encoding) throws IOException
-	{
+	public XInputStreamReaderRow(T in, int buffSize, Charset encoding) throws IOException {
 		if (in == null)
 			throw new NullPointerException("stream for null");
 		if (buffSize < 1)
@@ -45,37 +39,30 @@ public class XInputStreamReaderRow extends XInterfaceRandomAccessInputStream
 		in.seekIndex(0);
 		setLineSplitChar(XStaticFixedValue.Chars_NextLineN);
 	}
-	
 
-	public void mark(int readlimit)
-	{
+
+	public void mark(int readlimit) {
 		stream.mark(readlimit);
 	}
-    public boolean markSupported()
-	{
+    public boolean markSupported() {
 		return stream.markSupported();
 	}
-	public long skip(long n) throws java.io.IOException
-	{
+	public long skip(long n) throws java.io.IOException {
 		if (n <= 0)
 			return 0;
 		return stream.skip(n);
 	}
-	public void reset() throws java.io.IOException
-	{
+	public void reset() throws java.io.IOException {
 		stream.reset();
 	}
-	public int available() throws IOException
-	{
+	public int available() throws IOException {
 		return stream.available();
 	}
-	public void close()throws IOException
-	{
+	public void close()throws IOException {
 		if (stream != null)
 			stream.close();
 	}
-	public int read() throws IOException
-	{
+	public int read() throws IOException {
 		isReadComplete = false;
 		int read = readBreak;
 		if (stream != null)
@@ -84,8 +71,7 @@ public class XInputStreamReaderRow extends XInterfaceRandomAccessInputStream
 			isReadComplete = true;
 		return read;
 	}
-	public  int read(byte[] b, int off, int len) throws IOException
-	{
+	public  int read(byte[] b, int off, int len) throws IOException {
 		isReadComplete = false;
 		if (b == null)
 			throw new NullPointerException();
@@ -108,26 +94,22 @@ public class XInputStreamReaderRow extends XInterfaceRandomAccessInputStream
 	private boolean isReadComplete = false;
 	private boolean isReadSeparator = false;
 	private int readLineTheByteSize = 0;
-	
-	public char[] readLine() throws IOException
-	{
+
+	public char[] readLine() throws IOException {
 		return readLine(true);
 	}
 	@XAnnotations("this will buffered data until read to separator")
-	public char[] readLine(boolean resultAddSplitChar) throws IOException
-	{
+	public char[] readLine(boolean resultAddSplitChar) throws IOException {
 		isReadComplete = false;
 		isReadSeparator = false;
 		readLineTheByteSize = 0;
-		
+
 		int i = 0;//累计
 		int start = -1;
 		int read = -1;
 		long readLength = 0;
-		while (true)
-		{
-			if ((read = stream.read(rLrArray)) == readBreak)
-			{
+		while (true) {
+			if ((read = stream.read(rLrArray)) == readBreak) {
 				isReadComplete = true;
 				break;
 			}	
@@ -137,8 +119,7 @@ public class XInputStreamReaderRow extends XInterfaceRandomAccessInputStream
 				break;
 			i += read;
 		}
-		if (start > -1)
-		{
+		if (start > -1) {
 			readLineTheByteSize = start + rLSplit.length;
 			if (resultAddSplitChar)
 				rLReturn.setSize(start + rLSplit.length);
@@ -146,67 +127,57 @@ public class XInputStreamReaderRow extends XInterfaceRandomAccessInputStream
 				rLReturn.setSize(start);
 			isReadSeparator = true;
 			stream.seekIndex(stream.getIndex() - (readLength - start - rLSplit.length));
-			
-			if (rLReturn.size() == 0 && !resultAddSplitChar)
-			{
+
+			if (rLReturn.size() == 0 && !resultAddSplitChar) {
 				rLReturn.releaseCache();
 				return XStaticFixedValue.nullcharArray;
 			}
 		}
 		byte Array[] = rLReturn.toByteArray();
 		rLReturn.releaseCache();
-		if(start < 0)
+		if (start < 0)
 			readLineTheByteSize = Array.length;
 		return XEncodingUtils.bytes2Chars((Array != null && Array.length == 0) ?null: Array, streamEncoding);
 	}
 
 	@XAnnotations("last read stream result equals -1")
-	public boolean isReadComplete()
-	{
+	public boolean isReadComplete() {
 		return isReadComplete;
 	}
-	public boolean readLineIsReadToSeparator()
-	{
+	public boolean readLineIsReadToSeparator() {
 		return isReadSeparator;
 	}
-	public int getReadLineReadToByteLength()
-	{
+	public int getReadLineReadToByteLength() {
 		return readLineTheByteSize;
 	}
 
-	protected static byte[] getBytes(byte[] array, int start, int stop) 
-	{
+	protected static byte[] getBytes(byte[] array, int start, int stop) {
 		if (stop - start < 0 || start < 0 || stop < 0 || start > array.length || stop > array.length)
 			return null;
 		if (stop - start < 1)
 			return XStaticFixedValue.nullbyteArray;
 		return Arrays.copyOfRange(array, start, stop);
 	}
-	
-	
-	
-	
+
+
+
+
 	@Override
-	public void seekIndex(long offset) throws IOException
-	{
+	public void seekIndex(long offset) throws IOException {
 		stream.seekIndex(offset);
 	}
 	@Override
-	public long length() throws IOException
-	{
+	public long length() throws IOException {
 		return stream.length();
 	}
-	public long getIndex()
-	{
+	public long getIndex() {
 		return stream.getIndex();
 	}
-	
-	public XInterfaceRandomAccessInputStream getStream()
-	{
+
+	public T getStream() {
 		return stream;
 	}
-	public Charset getEncoding()
-	{
+	public Charset getEncoding() {
 		return streamEncoding;
 	}
 }

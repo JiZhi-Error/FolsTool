@@ -7,10 +7,9 @@ import top.fols.box.io.base.ns.XNsOutputStreamFixedLength;
  @java.io.OutputStream
  constraint outputstream max write size
  **/
-public class XOutputStreamFixedLength extends XNsOutputStreamFixedLength {
+public class XOutputStreamFixedLength<T extends OutputStream> extends XNsOutputStreamFixedLength<T> {
 
-
-	public XOutputStreamFixedLength(OutputStream outputstream, long MaxWriteSize) {
+	public XOutputStreamFixedLength(T outputstream, long MaxWriteSize) {
 		super(outputstream, MaxWriteSize);
 	}
 	public synchronized void write(int b) throws IOException {  

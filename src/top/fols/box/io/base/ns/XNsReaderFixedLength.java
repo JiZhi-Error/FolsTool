@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.Reader;
 import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
 
-public class XNsReaderFixedLength extends Reader implements XInterfaceStreamFixedLength<Reader> {
-	private Reader stream;
-	protected long maxCount;
-	protected long nowCount;
-	protected boolean fixed;
-	public XNsReaderFixedLength(Reader stream, long maxCount) {
+public class XNsReaderFixedLength<T extends Reader> extends Reader implements XInterfaceStreamFixedLength<Reader> {
+	private T stream;
+	private long maxCount;
+	private long nowCount;
+	private boolean fixed;
+	public XNsReaderFixedLength(T stream, long maxCount) {
 		if (stream == null)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
@@ -103,7 +103,7 @@ public class XNsReaderFixedLength extends Reader implements XInterfaceStreamFixe
 
 
 
-	public Reader getStream() {
+	public T getStream() {
 		return stream;
 	}
 

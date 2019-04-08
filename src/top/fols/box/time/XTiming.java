@@ -3,12 +3,12 @@ package top.fols.box.time;
 public class XTiming {
 	private long start,end;
 	public XTiming start() {
-		start = System.currentTimeMillis();
+		start = XTimeTool.currentTimeMillis();
 		return this;
 	}
 	public long getStartTime() {return start;}
 	public XTiming end() {
-		end = System.currentTimeMillis();
+		end = XTimeTool.currentTimeMillis();
 		return this;
 	}
 	public long getEndTime() {return end;}

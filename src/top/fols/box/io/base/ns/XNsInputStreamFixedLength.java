@@ -6,12 +6,12 @@ import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
 /**
  * constraint inputStream max read Size
  **/
-public class XNsInputStreamFixedLength extends InputStream implements XInterfaceStreamFixedLength<InputStream> {
-	private InputStream stream;
+public class XNsInputStreamFixedLength<T extends InputStream> extends InputStream implements XInterfaceStreamFixedLength<InputStream> {
+	private T stream;
 	private long maxCount;
 	private long nowCount;
 	private boolean fixed;
-	public XNsInputStreamFixedLength(InputStream stream, long maxCount) {
+	public XNsInputStreamFixedLength(T stream, long maxCount) {
 		if (stream == null)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
@@ -101,7 +101,7 @@ public class XNsInputStreamFixedLength extends InputStream implements XInterface
 
 
 
-	public InputStream getStream() {
+	public T getStream() {
 		return stream;
 	}
 }

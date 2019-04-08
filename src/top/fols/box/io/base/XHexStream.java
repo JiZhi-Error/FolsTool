@@ -139,13 +139,13 @@ public class XHexStream {
 
 
 	@XAnnotations("from byte array cast to hex write OutputStream")
-	public static class EncOutputStream extends OutputStream {
-		private final OutputStream stream;
+	public static class EncOutputStream<T extends OutputStream> extends OutputStream {
+		private final T stream;
 		private final byte[] HEX_CHAR;
-		public EncOutputStream(OutputStream hexwriter) {
+		public EncOutputStream(T hexwriter) {
 			this(hexwriter, false);
 		}
-		public EncOutputStream(OutputStream hexWrite, boolean toUpperCase) {
+		public EncOutputStream(T hexWrite, boolean toUpperCase) {
 			this.stream = XObjects.requireNonNull(hexWrite);
 			this.HEX_CHAR = HEX_CHAR = toUpperCase ?EncoderBuffer.HEX_CHAR_BYTES_UPPERCASE : EncoderBuffer.HEX_CHAR_BYTES_LOWERCASE;;
 		}
@@ -200,7 +200,7 @@ public class XHexStream {
 			cbuffered = XStaticFixedValue.nullbyteArray;
 		}
 
-		public OutputStream getStream() {
+		public T getStream() {
 			return stream;
 		}
 	}
@@ -208,10 +208,10 @@ public class XHexStream {
 
 
 	@XAnnotations("from InputStream read hex cast to byte array")
-	public static class DecInputStream extends InputStream {
+	public static class DecInputStream<T extends InputStream> extends InputStream {
 		//private static final String hexString = "0123456789abcdef";
-		private final InputStream stream;
-		public DecInputStream(InputStream hexReader) {
+		private final T stream;
+		public DecInputStream(T hexReader) {
 			this.stream = XObjects.requireNonNull(hexReader);
 		}
 		private byte[] oneHex = new byte[2];
@@ -307,7 +307,7 @@ public class XHexStream {
 		public void clearBuffer() {
 			cbuffered = XStaticFixedValue.nullbyteArray;
 		}
-		public InputStream getStream() {
+		public T getStream() {
 			return stream;
 		}
 	}

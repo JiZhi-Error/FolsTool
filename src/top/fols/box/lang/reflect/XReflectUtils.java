@@ -2,23 +2,20 @@ package top.fols.box.lang.reflect;
 import top.fols.box.lang.XString;
 import top.fols.box.util.XArrays;
 import top.fols.box.statics.XStaticBaseType;
-public class XReflectUtils
-{
+public class XReflectUtils {
 	//把简单的类地址转换为真实的类地址 Main[] >> [LMain;   String[] >> [Ljava.lang.String; byte[] >> [B
-	public static String toAbsClassName(String Addres)
-	{
+	public static String toAbsClassName(String Addres) {
 		//没有这些地址
 		if (XStaticBaseType.isBaseClassName(Addres))
 			return Addres;
 		//判断数组纬度
-		int d = XArrays.getDimensional_ClassCanonicalName(Addres);
-		StringBuffer startStr = new StringBuffer();
+		int d = XArrays.getDimensionalFromClassCanonicalName(Addres);
+		StringBuilder startStr = new StringBuilder();
 		for (int i = 0;i < d;i++)
 			startStr.append('[');
 		int start;
 		String F;
-		if ((start = Addres.indexOf("[]")) > -1)
-		{
+		if ((start = Addres.indexOf("[]")) > -1) {
 			Addres = Addres.substring(0, start);
 			if (Addres.equals("byte"))
 				F = "B";
@@ -44,8 +41,7 @@ public class XReflectUtils
 		}
 		return Addres;
 	}
-	public static String[] toAbsClassName(String...ClsName)
-	{
+	public static String[] toAbsClassName(String...ClsName) {
 		if (ClsName == null || ClsName.length == 0)
 			return null;
 		String c[] = new String[ClsName.length];
@@ -55,25 +51,23 @@ public class XReflectUtils
 	}
 
 
-	public static Class<?> forName(String AddresS,boolean initialize, java.lang.ClassLoader loader) throws ClassNotFoundException
-	{
+	public static Class<?> forName(String AddresS, boolean initialize, java.lang.ClassLoader loader) throws ClassNotFoundException {
 		String Addres = toAbsClassName(AddresS);
 		Class c = XStaticBaseType.forName(Addres);
 		if (c != null)
 			return c;
-		return Class.forName(Addres,initialize,loader);
+		return Class.forName(Addres, initialize, loader);
 	}
-	
-	
+
+
 
     //根据类名获取Class  byte[]  >> byte[].class ([B)    java.lang.String[] >> [Ljava.lang.String (String[].class);
-	public static Class<?> forName(String AddresS) throws ClassNotFoundException
-	{
+	public static Class<?> forName(String AddresS) throws ClassNotFoundException {
 		String Addres = toAbsClassName(AddresS);
 		Class c = XStaticBaseType.forName(Addres);
 		if (c != null)
 			return c;
 		return Class.forName(Addres);
 	}
-	
+
 }

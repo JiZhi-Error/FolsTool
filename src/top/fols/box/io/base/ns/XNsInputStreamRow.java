@@ -9,18 +9,25 @@ import top.fols.box.io.base.ByteArrayInputStreamUtils;
 import top.fols.box.io.interfaces.XInterfacePrivateBuffOperat;
 import top.fols.box.io.interfaces.XInterfaceStreanNextRow;
 import top.fols.box.statics.XStaticFixedValue;
-public class XNsInputStreamRow  extends InputStream implements XInterfacePrivateBuffOperat<byte[]>,XInterfaceStreanNextRow<byte[]> {
+import top.fols.box.io.interfaces.ReleaseCacheable;
+public class XNsInputStreamRow<T extends InputStream>  extends InputStream implements XInterfacePrivateBuffOperat<byte[]>,XInterfaceStreanNextRow<byte[]> ,ReleaseCacheable{
 
-	private InputStream stream = null;
+	@Override
+	public void releaseCache() {
+		// TODO: Implement this method
+		buf = null;
+	}
+	
+	private T stream = null;
 	private byte[] buf;
 	private int readBreak = XStaticFixedValue.Stream_ReadBreak;
-	public XNsInputStreamRow(InputStream in) {
+	public XNsInputStreamRow(T in) {
 		init(in, rLBufSize);
 	}
-	public XNsInputStreamRow(InputStream in, int readLine_BuffSize) {
+	public XNsInputStreamRow(T in, int readLine_BuffSize) {
 		init(in, readLine_BuffSize);
 	}
-	void init(InputStream in, int buffSize) {
+	private void init(T in, int buffSize) {
 		if (in == null)
 			throw new NullPointerException("stream for null");
 		if (buffSize < 1)
@@ -201,7 +208,7 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 	 清空缓存区
 	 */
 	public  void clearBuff() {
-		buf = null;
+		this.releaseCache();
 	}
 	/*
 	 Get Buffered 
@@ -213,7 +220,7 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 		return buf;
 	}
 
-	public InputStream getStream() {
+	public T getStream() {
 		return stream;
 	}
 

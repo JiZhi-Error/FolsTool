@@ -8,7 +8,10 @@ import top.fols.box.io.interfaces.XInterfaceRandomAccessInputStream;
 import top.fols.box.io.interfaces.XInterfaceRandomAccessOutputStream;
 import top.fols.box.util.XArrayPieceManager;
 import top.fols.box.util.sequence.interfaces.XInterfaceSequenceIOBigByte;
+import top.fols.box.annotation.XThreadNotSafe;
+
 public class XFileEdit {
+	@XThreadNotSafe
 	public static class ReadOption implements Closeable,XInterfaceSequenceIOBigByte {
 		public static ReadOption wrap(File file) throws IOException {
 			return new ReadOption(file);
@@ -203,7 +206,7 @@ public class XFileEdit {
 	}
 
 
-
+	@XThreadNotSafe
 	public static class WriteOption implements Closeable {
 		public static WriteOption wrap(File file) throws IOException {
 			return new WriteOption(file);

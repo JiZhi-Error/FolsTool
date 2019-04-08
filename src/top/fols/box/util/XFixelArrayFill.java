@@ -1,9 +1,8 @@
 package top.fols.box.util;
 import java.util.Arrays;
-import java.lang.reflect.Array;
+import top.fols.box.statics.XStaticFixedValue;
 
 public class XFixelArrayFill<K extends Object> {
-	public boolean fillLeft = true;
 	private Object[] array;
 	private int length;
 	public XFixelArrayFill(int len) {
@@ -18,40 +17,45 @@ public class XFixelArrayFill<K extends Object> {
 			array[i] = array[i + 1];
 		array[length - 1] = val;
 	}
-	//->
-	private void right(Object val) {
-		for (int i = length - 1;i >= 1;i--)
-			array[i] = array[i - 1];
-		array[0] = val;
-	}
 	public void fill(K val) {
-		if (fillLeft)
-			left(val);
-		else
-			right(val);
+		left(val);
 	}
 	public void fill(K...val) {
-		if (fillLeft)
-			for (K k:val)
-				left(k);
-		else
-			for (K k:val)
-				right(k);
+		/*
+		 [n,a,b,c]
+
+		 [1,2]
+		 [1,2,3,4,5,6,7]
+		 */
+		if (val.length >= length) {
+			for (int i = 0;i < length;i++)
+				array[i] = val[val.length - length + i];
+		} else {
+			int ind = length - val.length;
+			for (int i = 0;i < ind;i++)
+				array[i] = array[length - ind + i];
+			for (int i = 0;i < val.length;i++)
+				array[ind + i] = val[i];
+		}
 	}
 	public int length() {return length;}
 	public void free() {
-		array = null;
+		array = XStaticFixedValue.nullObjectArray;
 		length = 0;
 	}
 	public K get(int i) {return (K)array[i];}
 	public void set(int i, K val) {array[i] = val;}
 	public Object[] getArray() {return array;}
 
+	@Override
+	public String toString() {
+		// TODO: Implement this method
+		return Arrays.toString(array);
+	}
 
 
 
 	public static class longsFill {
-		public boolean fillLeft = true;
 		private long[] array;
 		private int length;
 		public longsFill(int len) {
@@ -66,37 +70,38 @@ public class XFixelArrayFill<K extends Object> {
 				array[i] = array[i + 1];
 			array[length - 1] = val;
 		}
-		//->
-		private void right(long val) {
-			for (int i = length - 1;i >= 1;i--)
-				array[i] = array[i - 1];
-			array[0] = val;
-		}
 		public void fill(long val) {
-			if (fillLeft)
-				left(val);
-			else
-				right(val);
+			left(val);
 		}
 		public void fill(long...val) {
-			if (fillLeft)
-				for (long k:val)
-					left(k);
-			else
-				for (long k:val)
-					right(k);
+			if (val.length >= length) {
+				for (int i = 0;i < length;i++)
+					array[i] = val[val.length - length + i];
+			} else {
+				int ind = length - val.length;
+				for (int i = 0;i < ind;i++)
+					array[i] = array[length - ind + i];
+				for (int i = 0;i < val.length;i++)
+					array[ind + i] = val[i];
+			}
 		}
 		public int length() {return length;}
 		public void free() {
-			array = null;
+			array = XStaticFixedValue.nulllongArray;
 			length = 0;
 		}
 		public long get(int i) {return array[i];}
 		public void set(int i, long val) {array[i] = val;}
 		public long[] getArray() {return array;}
+
+		@Override
+		public String toString() {
+			// TODO: Implement this method
+			return Arrays.toString(array);
+		}
+
 	}
 	public static class doublesFill {
-		public boolean fillLeft = true;
 		private double[] array;
 		private int length;
 		public doublesFill(int len) {
@@ -111,37 +116,37 @@ public class XFixelArrayFill<K extends Object> {
 				array[i] = array[i + 1];
 			array[length - 1] = val;
 		}
-		//->
-		private void right(double val) {
-			for (int i = length - 1;i >= 1;i--)
-				array[i] = array[i - 1];
-			array[0] = val;
-		}
 		public void fill(double val) {
-			if (fillLeft)
-				left(val);
-			else
-				right(val);
+			left(val);
 		}
 		public void fill(double...val) {
-			if (fillLeft)
-				for (double k:val)
-					left(k);
-			else
-				for (double k:val)
-					right(k);
+			if (val.length >= length) {
+				for (int i = 0;i < length;i++)
+					array[i] = val[val.length - length + i];
+			} else {
+				int ind = length - val.length;
+				for (int i = 0;i < ind;i++)
+					array[i] = array[length - ind + i];
+				for (int i = 0;i < val.length;i++)
+					array[ind + i] = val[i];
+			}
 		}
 		public int length() {return length;}
 		public void free() {
-			array = null;
+			array = XStaticFixedValue.nulldoubleArray;
 			length = 0;
 		}
 		public double get(int i) {return array[i];}
 		public void set(int i, double val) {array[i] = val;}
 		public double[] getArray() {return array;}
+
+		@Override
+		public String toString() {
+			// TODO: Implement this method
+			return Arrays.toString(array);
+		}
 	}
 	public static class bytesFill {
-		public boolean fillLeft = true;
 		private byte[] array;
 		private int length;
 		public bytesFill(int len) {
@@ -156,37 +161,37 @@ public class XFixelArrayFill<K extends Object> {
 				array[i] = array[i + 1];
 			array[length - 1] = val;
 		}
-		//->
-		private void right(byte val) {
-			for (int i = length - 1;i >= 1;i--)
-				array[i] = array[i - 1];
-			array[0] = val;
-		}
 		public void fill(byte val) {
-			if (fillLeft)
-				left(val);
-			else
-				right(val);
+			left(val);
 		}
 		public void fill(byte...val) {
-			if (fillLeft)
-				for (byte k:val)
-					left(k);
-			else
-				for (byte k:val)
-					right(k);
+			if (val.length >= length) {
+				for (int i = 0;i < length;i++)
+					array[i] = val[val.length - length + i];
+			} else {
+				int ind = length - val.length;
+				for (int i = 0;i < ind;i++)
+					array[i] = array[length - ind + i];
+				for (int i = 0;i < val.length;i++)
+					array[ind + i] = val[i];
+			}
 		}
 		public int length() {return length;}
 		public void free() {
-			array = null;
+			array = XStaticFixedValue.nullbyteArray;
 			length = 0;
 		}
 		public byte get(int i) {return array[i];}
 		public void set(int i, byte val) {array[i] = val;}
 		public byte[] getArray() {return array;}
+
+		@Override
+		public String toString() {
+			// TODO: Implement this method
+			return Arrays.toString(array);
+		}
 	}
 	public static class booleansFill {
-		public boolean fillLeft = true;
 		private boolean[] array;
 		private int length;
 		public booleansFill(int len) {
@@ -201,33 +206,34 @@ public class XFixelArrayFill<K extends Object> {
 				array[i] = array[i + 1];
 			array[length - 1] = val;
 		}
-		//->
-		private void right(boolean val) {
-			for (int i = length - 1;i >= 1;i--)
-				array[i] = array[i - 1];
-			array[0] = val;
-		}
 		public void fill(boolean val) {
-			if (fillLeft)
-				left(val);
-			else
-				right(val);
+			left(val);
 		}
 		public void fill(boolean...val) {
-			if (fillLeft)
-				for (boolean k:val)
-					left(k);
-			else
-				for (boolean k:val)
-					right(k);
+			if (val.length >= length) {
+				for (int i = 0;i < length;i++)
+					array[i] = val[val.length - length + i];
+			} else {
+				int ind = length - val.length;
+				for (int i = 0;i < ind;i++)
+					array[i] = array[length - ind + i];
+				for (int i = 0;i < val.length;i++)
+					array[ind + i] = val[i];
+			}
 		}
 		public int length() {return length;}
 		public void free() {
-			array = null;
+			array = XStaticFixedValue.nullbooleanArray;
 			length = 0;
 		}
 		public boolean get(int i) {return array[i];}
 		public void set(int i, boolean val) {array[i] = val;}
 		public boolean[] getArray() {return array;}
+
+		@Override
+		public String toString() {
+			// TODO: Implement this method
+			return Arrays.toString(array);
+		}
 	}
 }

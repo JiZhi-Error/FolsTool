@@ -1,14 +1,13 @@
 package top.fols.box.util;
 
 import top.fols.box.annotation.XAnnotations;
-import top.fols.box.io.interfaces.Destroyable;
+import top.fols.box.io.interfaces.ReleaseCacheable;
 import top.fols.box.statics.XStaticFixedValue;
 public final class XStackUtils {
-
 	@XAnnotations("the stack is the reverse order")
-	protected static class StackList implements Destroyable {
+	protected static class StackList implements ReleaseCacheable {
 		@Override
-		public void destroyData() {
+		public void releaseCache() {
 			list = XStaticFixedValue.nullStack;
 			index = -1;
 			originIndex = -1;

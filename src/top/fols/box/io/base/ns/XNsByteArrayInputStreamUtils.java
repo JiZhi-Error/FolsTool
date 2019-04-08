@@ -17,14 +17,11 @@ public class XNsByteArrayInputStreamUtils extends InputStream implements  XInter
 		// TODO: Implement this method
 		return count;
 	}
-
-
 	@Override
 	public int getBuffSize() {
 		// TODO: Implement this method
 		return buf.length;
 	}
-
 
 
 	// 保存字节输入流数据的字节数组

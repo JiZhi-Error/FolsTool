@@ -13,7 +13,6 @@ import top.fols.box.util.ArrayListUtils;
 import top.fols.box.util.HashMapUtils9;
 import top.fols.box.util.XArrays;
 public class XReflectObjCmf {
-
 	public static final XReflectObjCmf defaultInstance = new XReflectObjCmf();
 
 	private Map<Class,Constructor[]> hashClassConstructor = new HashMapUtils9<>();
@@ -119,25 +118,35 @@ public class XReflectObjCmf {
 
 	private Map<Class,Map<String,Method[]>>hashClassMethod = new HashMapUtils9<>();
 	public void clearClassMethodCache() {
+		for (Class cls:hashClassMethod.keySet()) {
+			Map<String,Method[]> clsmi = hashClassMethod.get(cls);
+			if (clsmi != null)
+				clsmi.clear();
+		}
 		hashClassMethod.clear();
 	}
 	public Set<Class> listClassMethodCache() {
 		return hashClassMethod.keySet();
 	}
 	public void removeClassMethodCache(Class cls) {
+		Map<String,Method[]> clsmi = hashClassMethod.get(cls);
+		if (clsmi != null)
+			clsmi.clear();
 		hashClassMethod.remove(cls);
 	}
 	public Map<String,Method[]> updateClassMethodCache(Class cls, Method[] newMethods) {
 		Map<String,Method[]> Methods = new HashMapUtils9<>();
-
 		Map<String,List<Method>> Methods2 = new HashMapUtils9<>();
 		Method[] ms =  newMethods;
 		for (Method m : ms) {
-			List<Method> list = Methods2.get(m.getName());
+			if(m == null)
+				continue;
+			String mn = m.getName();
+			List<Method> list = Methods2.get(mn);
 			if (list == null)
 				list = new ArrayListUtils<>();
 			list.add(m);
-			Methods2.put(m.getName(), list);
+			Methods2.put(mn, list);
 		}
 		for (String m:Methods2.keySet()) {
 			Methods.put(m, (Method[])XArrays.copyOf(Methods2.get(m).toArray(), XStaticBaseType.Method_class));
@@ -150,10 +159,13 @@ public class XReflectObjCmf {
 		return hashClassMethod.get(cls).get(MethodName);
 	}
 	public Set<String> getClassMethodCacheNameKeys(Class cls) {
-
 		return hashClassMethod.get(cls).keySet();
 	}
-
+	
+	
+	
+	
+	
 	public Method getObjMethod(Class<?> cls, String MethodName, Object... objArr) {
 		return getObjMethod(true, cls, MethodName, objArr);
 	}

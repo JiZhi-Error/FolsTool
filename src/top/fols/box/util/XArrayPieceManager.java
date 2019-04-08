@@ -31,7 +31,7 @@ public class XArrayPieceManager implements java.io.Serializable {
 		else if (((this.pieceCount - 1) * this.pieceSize) + this.pieceSize != length)
 			++this.pieceCount;
 	}
-
+	
 	public long getPieceIndexStart(long newPiece) {
 		if (newPiece < 0 || newPiece >= pieceCount)
 			throw new IndexOutOfBoundsException(String.format("hopePiece=%s, minPiece=%s, pieceCount=%s", newPiece, 0, pieceCount));

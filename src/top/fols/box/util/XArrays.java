@@ -857,9 +857,9 @@ public class XArrays {
 		Class originalArray = Object.getClass();
 		if (!originalArray.isArray())
 			return 0;
-		return getDimensional_ClassCanonicalName(originalArray.getCanonicalName());
+		return getDimensionalFromClassCanonicalName(originalArray.getCanonicalName());
 	}
-	public static int getDimensional_ClassCanonicalName(String Addres) {
+	public static int getDimensionalFromClassCanonicalName(String Addres) {
 		if (Addres == null)
 			return 0;
 		int index = Addres.indexOf("["); //java.lang.System[][]

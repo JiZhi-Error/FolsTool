@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import top.fols.box.io.interfaces.ReleasableCache;
+import top.fols.box.io.interfaces.ReleaseCacheable;
 import top.fols.box.io.interfaces.XInterfacePrivateBuffOperat;
 import top.fols.box.io.interfaces.XInterfacePrivateByteArrayBuffSearchOperat;
 import top.fols.box.io.interfaces.XInterfacePrivateFixedStreamIndexOperat;
@@ -15,7 +15,7 @@ import top.fols.box.util.XArraysUtils;
 /**
  @java.io.ByteArrayOutputStream
  **/
-public class XNsByteArrayOutputStreamUtils extends OutputStream implements  XInterfacePrivateBuffOperat<byte[]>,XInterfacePrivateByteArrayBuffSearchOperat,XInterfacePrivateFixedStreamSizeOperat,XInterfacePrivateFixedStreamIndexOperat,ReleasableCache {
+public class XNsByteArrayOutputStreamUtils extends OutputStream implements  XInterfacePrivateBuffOperat<byte[]>,XInterfacePrivateByteArrayBuffSearchOperat,XInterfacePrivateFixedStreamSizeOperat,XInterfacePrivateFixedStreamIndexOperat,ReleaseCacheable {
 
 	@Override
 	public int getSize() {

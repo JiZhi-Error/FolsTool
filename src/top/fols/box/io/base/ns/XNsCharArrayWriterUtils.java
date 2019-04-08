@@ -1,6 +1,6 @@
 package top.fols.box.io.base.ns;
 
-import top.fols.box.io.interfaces.ReleasableCache;
+import top.fols.box.io.interfaces.ReleaseCacheable;
 import top.fols.box.io.interfaces.XInterfacePrivateBuffOperat;
 import top.fols.box.io.interfaces.XInterfacePrivateCharArrayBuffSearchOperat;
 import top.fols.box.io.interfaces.XInterfacePrivateFixedStreamIndexOperat;
@@ -15,7 +15,7 @@ import java.util.Arrays;
  * Writer的一个子类、可将字符写入到自带的一个缓存字符数组buf中、
  * 当buf写满时、会自动扩容。
  */
-public class XNsCharArrayWriterUtils extends Writer implements  XInterfacePrivateBuffOperat<char[]>,XInterfacePrivateCharArrayBuffSearchOperat,XInterfacePrivateFixedStreamSizeOperat,XInterfacePrivateFixedStreamIndexOperat,ReleasableCache {
+public class XNsCharArrayWriterUtils extends Writer implements  XInterfacePrivateBuffOperat<char[]>,XInterfacePrivateCharArrayBuffSearchOperat,XInterfacePrivateFixedStreamSizeOperat,XInterfacePrivateFixedStreamIndexOperat,ReleaseCacheable {
 
 	@Override
 	public int getSize() {

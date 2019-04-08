@@ -3,11 +3,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import top.fols.box.annotation.XAnnotations;
 import top.fols.box.io.base.ns.XNsInputStreamRow;
-public class XInputStreamRow  extends XNsInputStreamRow {
-	public XInputStreamRow(InputStream in) {
+public class XInputStreamRow<T extends InputStream>  extends XNsInputStreamRow<T> {
+	public XInputStreamRow(T in) {
 		super(in);
 	}
-	public XInputStreamRow(InputStream in, int readLine_BuffSize) {
+	public XInputStreamRow(T in, int readLine_BuffSize) {
 		super(in, readLine_BuffSize);
 	}
 	public synchronized long skip(long n) throws java.io.IOException {

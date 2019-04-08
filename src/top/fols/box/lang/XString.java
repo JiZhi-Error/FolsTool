@@ -13,7 +13,7 @@ public class XString {
 			return "";
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < length; i++)
-			sb.append(str[XRandom.getRandomInt(0,length - 1)]);
+			sb.append(str[XRandom.getRandomInt(0, length - 1)]);
 		return sb.toString();
 	}
 
@@ -104,7 +104,7 @@ public class XString {
 
 
 
-	
+
 	public static String subleft(String str, String string, int off) {
 		return subleft(str, str.indexOf(string, off));
 	}
@@ -194,7 +194,7 @@ public class XString {
 	}
 	public static void fillLeft(char[] str, char fillstr, char newChar[]) {
 		if (newChar.length == str.length) {
-			if(str == newChar)
+			if (str == newChar)
 				return;
 			System.arraycopy(str, 0, newChar, 0, str.length);
 			return;
@@ -226,7 +226,7 @@ public class XString {
 	}
 	public static void fillRight(char[] str, char fillstr, char newChar[]) {
 		if (newChar.length == str.length || (str.length == 0 && newChar.length == 0)) {
-			if(str == newChar)
+			if (str == newChar)
 				return;
 			System.arraycopy(str, 0, newChar, 0, str.length);
 			return;

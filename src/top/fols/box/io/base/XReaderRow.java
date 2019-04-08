@@ -3,11 +3,11 @@ import java.io.IOException;
 import java.io.Reader;
 import top.fols.box.annotation.XAnnotations;
 import top.fols.box.io.base.ns.XNsReaderRow;
-public class XReaderRow extends XNsReaderRow {
-	public XReaderRow(Reader in) {
+public class XReaderRow<T extends Reader> extends XNsReaderRow<T> {
+	public XReaderRow(T in) {
 		super(in);
 	}
-	public XReaderRow(Reader in, int readLine_BuffSize) {
+	public XReaderRow(T in, int readLine_BuffSize) {
 		super(in, readLine_BuffSize);
 	}
 	public long skip(long n) throws java.io.IOException {

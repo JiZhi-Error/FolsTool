@@ -44,5 +44,4 @@ public class XEncodingUtils {
 			chars = Arrays.copyOf(chars, limit);
 		return chars;
 	}
-
 }

@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import top.fols.box.io.base.ns.XNsInputStreamFixedLength;
 
-public class XInputStreamFixedLength extends XNsInputStreamFixedLength {
-	public XInputStreamFixedLength(InputStream inputstream, long MaxReadSize) {
+public class XInputStreamFixedLength<T extends InputStream> extends XNsInputStreamFixedLength<T> {
+	public XInputStreamFixedLength(T inputstream, long MaxReadSize) {
 		super(inputstream, MaxReadSize);
 	}
 	public synchronized int read() throws IOException {

@@ -3,12 +3,13 @@ package top.fols.box.statics;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import top.fols.box.util.empty.XEmptyIterator;
-import top.fols.box.util.empty.XEmptyList;
-import top.fols.box.util.empty.XEmptyListIterator;
+import java.util.Map;
+import java.util.Set;
 
 public class XStaticFixedValue {
 	public static class FileValue {
@@ -46,10 +47,15 @@ public class XStaticFixedValue {
 	public final static Boolean[] nullBooleanArray = new Boolean[0];
 	public final static Float[] nullFloatArray = new Float[0];
 	public final static Short[] nullShortArray = new Short[0];
-	public final static Iterator nullIterator = new XEmptyIterator();
-	public final static List nullList = new XEmptyList();
-	public final static ListIterator nullListIterator = new XEmptyListIterator();;
-
+	public final static Iterator nullIterator = Collections.emptyIterator();
+	public final static List nullList = Collections.emptyList();
+	public final static ListIterator nullListIterator = Collections.emptyListIterator();;
+	public final static Enumeration nullEnumeration = Collections.emptyEnumeration();;
+	public final static Set nullSet = Collections.emptySet();;
+	public final static Map nullMap = Collections.emptyMap();;
+	
+	
+	
 	public final static Class[] nullClassArray = new Class[0];
 	public final static Method[] nullMethodArray = new Method[0];
 	public final static Constructor[] nullConstructorArray = new Constructor[0];

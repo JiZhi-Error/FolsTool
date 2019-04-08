@@ -29,19 +29,17 @@ public class XMessageDigest {
 	public static String bufferToHex(MessageDigest m) {
 		return bufferToHex(m.digest());
 	}
-
-
 	private static String bufferToHex(byte bytes[]) {
 		return bufferToHex(bytes, 0, bytes.length);
 	}
 	private static String bufferToHex(byte bytes[], int m, int n) {
-		StringBuffer stringbuffer = new StringBuffer(2 * n);
+		StringBuilder stringbuffer = new StringBuilder(2 * n);
 		int k = m + n;
 		for (int l = m; l < k; l++)
 			appendHexPair(bytes[l], stringbuffer);
 		return stringbuffer.toString();
 	}
-	private static void appendHexPair(byte bt, StringBuffer stringbuffer) {
+	private static void appendHexPair(byte bt, StringBuilder stringbuffer) {
 		char c0 = hexDigits[(bt & 0xf0) >> 4];
 		char c1 = hexDigits[bt & 0xf];
 		stringbuffer.append(c0);
@@ -76,10 +74,10 @@ public class XMessageDigest {
 	public static String getMD5(byte[] input) {
 		return get("MD5", input);
 	}
-
-
-
-
+	
+	
+	
+	
 	private static void copyInputStream(InputStream input, MessageDigest output) {
 		try {
 			byte[] buff = new byte[XStream.default_streamByteArrBuffSize];

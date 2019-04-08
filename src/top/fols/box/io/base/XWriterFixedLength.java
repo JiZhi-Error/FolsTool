@@ -2,8 +2,8 @@ package top.fols.box.io.base;
 import java.io.IOException;
 import java.io.Writer;
 import top.fols.box.io.base.ns.XNsWriterFixedLength;
-public class XWriterFixedLength extends XNsWriterFixedLength {
-	public XWriterFixedLength(Writer writer, long MaxWriteSize) {
+public class XWriterFixedLength<T extends Writer> extends XNsWriterFixedLength<T> {
+	public XWriterFixedLength(T writer, long MaxWriteSize) {
 		super(writer, MaxWriteSize);
 	}
 	public void write(int b) throws IOException {  

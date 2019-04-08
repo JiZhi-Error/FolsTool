@@ -5,8 +5,7 @@ import top.fols.box.util.sequence.interfaces.XInterfaceSequenceByte;
 
 public class XSequenceByteUtils {
 	public static XInterfaceSequenceByte wrapByteSequence(final byte[] bytes) {
-		return new XInterfaceSequenceByte()
-		{
+		return new XInterfaceSequenceByte() {
 			@Override
 			public int length() {
 				return bytes.length;
@@ -18,12 +17,8 @@ public class XSequenceByteUtils {
 			}
 		};
 	}
-
-
-
 	public static XInterfaceSequenceBigByte wrapBigByteSequence(final byte[] bytes) {
-		return new XInterfaceSequenceBigByte()
-		{
+		return new XInterfaceSequenceBigByte() {
 			@Override
 			public long length() {
 				return bytes.length;
@@ -36,8 +31,7 @@ public class XSequenceByteUtils {
 		};
 	}
 	public static XInterfaceSequenceBigByte wrapBigByteSequence(final XInterfaceSequenceByte bytes) {
-		return new XInterfaceSequenceBigByte()
-		{
+		return new XInterfaceSequenceBigByte() {
 			@Override
 			public long length() {
 				return bytes.length();

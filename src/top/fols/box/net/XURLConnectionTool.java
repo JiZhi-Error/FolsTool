@@ -68,6 +68,7 @@ public class XURLConnectionTool {
 					if (!trim1.equals(""))
 						m.Key.put(trim1, trim2);
 				}
+				
 				byteArray = null;
 			}
 		}
@@ -94,7 +95,7 @@ public class XURLConnectionTool {
 			for (String s:Content)
 				buf.append(s).append(XStaticFixedValue.String_NextLineN);
 			putAll(buf.toString());
-			buf.delete(0, buf.length());
+			buf = null;
 			return this;
 		}
 		public String get(String k) {
@@ -120,7 +121,7 @@ public class XURLConnectionTool {
 		@Override
 		public String toString() {
 			// TODO: Implement this method
-			StringBuffer buf = new StringBuffer();
+			StringBuilder buf = new StringBuilder();
 			for (String k:keys()) {
 				buf.append(k).append(':').append(' ').append(get(k)).append("\r\n");
 			}

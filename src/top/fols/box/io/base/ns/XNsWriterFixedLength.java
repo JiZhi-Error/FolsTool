@@ -3,13 +3,13 @@ package top.fols.box.io.base.ns;
 import java.io.IOException;
 import java.io.Writer;
 import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
-public class XNsWriterFixedLength extends Writer implements XInterfaceStreamFixedLength<Writer> {
+public class XNsWriterFixedLength<T extends Writer> extends Writer implements XInterfaceStreamFixedLength<Writer> {
 
-	private Writer stream;
+	private T stream;
 	private long maxCount;
 	private long nowCount;
 	private boolean fixed;
-	public XNsWriterFixedLength(Writer stream, long maxCount) {
+	public XNsWriterFixedLength(T stream, long maxCount) {
 		if (stream == null)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
@@ -97,7 +97,7 @@ public class XNsWriterFixedLength extends Writer implements XInterfaceStreamFixe
 	}
 
 
-	public Writer getStream() {
+	public T getStream() {
 		return stream;
 	}
 }

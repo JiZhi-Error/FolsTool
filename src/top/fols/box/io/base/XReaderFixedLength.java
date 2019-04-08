@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.io.Reader;
 import top.fols.box.io.base.ns.XNsReaderFixedLength;
 
-public class XReaderFixedLength extends XNsReaderFixedLength {
-	public XReaderFixedLength(Reader reader, long MaxReadSize) {
+public class XReaderFixedLength<T extends Reader> extends XNsReaderFixedLength<T> {
+	public XReaderFixedLength(T reader, long MaxReadSize) {
 		super(reader, MaxReadSize);
 	}
 	public int read() throws IOException {

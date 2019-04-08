@@ -15,6 +15,7 @@ import java.lang.annotation.RetentionPolicy;
 		ElementType.TYPE
 	}
 )
+
 @Retention(value=RetentionPolicy.SOURCE)
 public abstract @interface XAnnotations {
 	String value() default "";

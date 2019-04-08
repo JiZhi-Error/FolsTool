@@ -9,12 +9,12 @@ import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
  Constraint OutputStream Max Write Size
  限制输出流最大写入大小
  **/
-public class XNsOutputStreamFixedLength extends OutputStream implements XInterfaceStreamFixedLength<OutputStream> {
-	private OutputStream stream;
+public class XNsOutputStreamFixedLength<T extends OutputStream> extends OutputStream implements XInterfaceStreamFixedLength<OutputStream> {
+	private T stream;
 	protected long maxCount;
 	protected long nowCount;
 	protected boolean fixed;
-	public XNsOutputStreamFixedLength(OutputStream stream, long maxCount) {
+	public XNsOutputStreamFixedLength(T stream, long maxCount) {
 		if (stream == null)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
@@ -86,7 +86,7 @@ public class XNsOutputStreamFixedLength extends OutputStream implements XInterfa
 	}
 
 
-	public OutputStream getStream() {
+	public T getStream() {
 		return stream;
 	}
 

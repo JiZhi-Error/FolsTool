@@ -20,16 +20,6 @@ public class XObjects {
 	}
 	
 	
-	public void clear(StringBuilder buf){
-		if(isEmpty(buf))
-			return;
-		buf.delete(0,buf.length());
-	}
-	public void clear(StringBuffer buf){
-		if(isEmpty(buf))
-			return;
-		buf.delete(0,buf.length());
-	}
 	
 	
 	

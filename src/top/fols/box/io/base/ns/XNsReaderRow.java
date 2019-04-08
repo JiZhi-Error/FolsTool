@@ -5,26 +5,34 @@ import java.io.Reader;
 import java.util.Arrays;
 import top.fols.box.annotation.XAnnotations;
 import top.fols.box.io.XStream;
+import top.fols.box.io.interfaces.ReleaseCacheable;
 import top.fols.box.io.interfaces.XInterfacePrivateBuffOperat;
 import top.fols.box.io.interfaces.XInterfaceStreanNextRow;
 import top.fols.box.statics.XStaticFixedValue;
-public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat<char[]>,XInterfaceStreanNextRow<char[]> {
+public class XNsReaderRow<T extends Reader> extends Reader implements  XInterfacePrivateBuffOperat<char[]>,XInterfaceStreanNextRow<char[]> ,ReleaseCacheable {
+
+	@Override
+	public void releaseCache() {
+		// TODO: Implement this method
+		buf = null;
+	}
+
 
 	@Override
 	public int getBuffSize() {
 		return buf == null ?0: buf.length;
 	}
 
-	private Reader stream = null;
+	private T stream = null;
 	private char[] buf;
 	private int readBreak = XStaticFixedValue.Stream_ReadBreak;
-	public XNsReaderRow(Reader in) {
+	public XNsReaderRow(T in) {
 		init(in, rLBufSize);
 	}
-	public XNsReaderRow(Reader in, int readLine_BuffSize) {
+	public XNsReaderRow(T in, int readLine_BuffSize) {
 		init(in, readLine_BuffSize);
 	}
-	void init(Reader in, int buffSize) {
+	void init(T in, int buffSize) {
 		if (in == null)
 			throw new NullPointerException("stream for null");
 		if (buffSize < 1)
@@ -193,7 +201,7 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 	 清空缓存区
 	 */
 	public void clearBuff() {
-		buf = null;
+		this.releaseCache();
 	}
 	/*
 	 Get Buffered 
@@ -204,7 +212,7 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 			buf = null;
 		return buf;
 	}
-	public Reader getStream() {
+	public T getStream() {
 		return stream;
 	}
 
