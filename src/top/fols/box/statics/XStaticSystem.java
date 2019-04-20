@@ -3,18 +3,18 @@ import java.io.File;
 import java.security.Security;
 import top.fols.box.util.XMapKeyCheck;
 public class XStaticSystem {
-	public static final String System_Property_TmpDir = "java.io.tmpdir";
+	public static final String SystemProperty_TmpDir = "java.io.tmpdir";
 	public static String getTmpDir() {
-		return System.getProperty(System_Property_TmpDir);
+		return System.getProperty(SystemProperty_TmpDir);
 	}
 	public static File getTmpDirFile() {
 		return new File(getTmpDir());
 	}
 
 
-	public static final String System_Property_OSName = "os.name";
+	public static final String SystemProperty_OSName = "os.name";
 	public static String getOSName() {
-		return System.getProperty(System_Property_OSName);
+		return System.getProperty(SystemProperty_OSName);
 	}
 	public static class OSName {    
 		private static String OS = getOSName().toLowerCase();  
@@ -73,16 +73,20 @@ public class XStaticSystem {
 		public static boolean isOthersOs() {  
 			return !isLinux() && !isMacOS()		&& !isMacOSX()		&& !isWindows()		&& !isOS2()		&& !isSolaris()		&& !isSunOS()		&& !isMPEiX()		&& !isHPUX()		&& !isAix()		&& !isOS390()		&& !isFreeBSD()		&& !isIrix()		&& !isDigitalUnix()		&& !isNetWare()		&& !isOSF1()		&& !isOpenVMS();  
 		}  
-
 	}
-
-
-
-
+	
+	
+	
+	
+	
 	private static byte[] lineSeparatorBytes;
-	public static final String getLineSeparator() {return System.lineSeparator();}
-	public static final byte[] getLineSeparatorBytes() {return lineSeparatorBytes == null ? lineSeparatorBytes = getLineSeparator().getBytes(): lineSeparatorBytes;}
-
+	public static final String getLineSeparator() {
+		return System.lineSeparator();
+	}
+	public static final byte[] getLineSeparatorBytes() {
+		return lineSeparatorBytes == null ? lineSeparatorBytes = getLineSeparator().getBytes(): lineSeparatorBytes;
+	}
+	
 	public static XMapKeyCheck getMessageDigestAlgorithms() {
 		XMapKeyCheck list = new XMapKeyCheck();
 		for (String Str:Security.getAlgorithms("MessageDigest"))

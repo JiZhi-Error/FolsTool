@@ -4,6 +4,7 @@ import java.util.Set;
 public class XMapKeyCheck {
 	public XMapKeyCheck(Object[] array) {
 		putAll(array);
+		array = null;
 	}
 	public XMapKeyCheck(Object array) {
 		if (XObjects.requireArray(array) == null)
@@ -16,11 +17,12 @@ public class XMapKeyCheck {
 			Hash.put(i, nullvalue);
 	}
 	public XMapKeyCheck() {
+		super();
 	}
 
 
 	private Map Hash = new HashMapUtils9<>();
-	private Object nullvalue = new Object();
+	private Object nullvalue = null;
 	public boolean contains(Object o) {
 		return Hash.containsKey(o);
 	}
@@ -64,5 +66,11 @@ public class XMapKeyCheck {
 	public void removeAll(Object... obj) {
 		for (Object i:obj)
 			Hash.remove(i);
+	}
+
+	@Override
+	public String toString() {
+		// TODO: Implement this method
+		return Hash.toString();
 	}
 }

@@ -2,11 +2,10 @@ package top.fols.box.util;
 public class XArrayPieceManager implements java.io.Serializable {
 	private static final long serialVersionUID = 784920843L;
 
-	private long length;//FileLength
+	private long length;
 	private long pieceCount;//
 	private long pieceSize;//BufferSize
-	public static int pieceBufDefaultSize = 8192;
-
+	
 	public XArrayPieceManager(long length, long pieceSize) {
 		updatepPieceInfo(length, pieceSize);
 	}
@@ -31,7 +30,7 @@ public class XArrayPieceManager implements java.io.Serializable {
 		else if (((this.pieceCount - 1) * this.pieceSize) + this.pieceSize != length)
 			++this.pieceCount;
 	}
-
+	
 	public long getPieceIndexStart(long newPiece) {
 		if (newPiece < 0 || newPiece >= pieceCount)
 			throw new IndexOutOfBoundsException(String.format("hopePiece=%s, minPiece=%s, pieceCount=%s", newPiece, 0, pieceCount));

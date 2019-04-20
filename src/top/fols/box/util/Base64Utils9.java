@@ -76,12 +76,7 @@ import top.fols.box.util.XObjects;
  */
 
 public class Base64Utils9 {
-
-
-
-
-
-
+	
     private Base64Utils9() {}
 
     /**

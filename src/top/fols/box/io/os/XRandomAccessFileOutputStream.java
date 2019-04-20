@@ -3,6 +3,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import top.fols.box.io.interfaces.XInterfaceRandomAccessOutputStream;
 import top.fols.box.statics.XStaticFixedValue;
+import top.fols.box.annotation.XAnnotations;
+
+@XAnnotations("RandomAccessFile mode rw")
 public class XRandomAccessFileOutputStream extends XInterfaceRandomAccessOutputStream {
 	private long index;
 	private final RandomAccessFile stream;
@@ -57,8 +60,7 @@ public class XRandomAccessFileOutputStream extends XInterfaceRandomAccessOutputS
 		return stream.length();
 	}
 
-	public XRandomAccessFileOutputStream setLength(long newLength) throws java.io.IOException {
+	public void setLength(long newLength) throws java.io.IOException {
 		stream.setLength(newLength);
-		return this;
 	}
 }

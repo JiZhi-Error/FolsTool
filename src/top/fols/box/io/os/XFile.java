@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import top.fols.box.io.XStream;
-import top.fols.box.io.base.XInputStreamFixedLength;
-import top.fols.box.io.base.XOutputStreamFixedLength;
+import top.fols.box.io.base.ns.XNsInputStreamFixedLength;
+import top.fols.box.io.base.ns.XNsOutputStreamFixedLength;
 import top.fols.box.statics.XStaticFixedValue;
 
 public class XFile implements Closeable {
@@ -16,110 +16,84 @@ public class XFile implements Closeable {
 	@Override
 	public void close() {
 		// TODO: Implement this method
-		try{
+		try {
 			this.r.close();
-		}catch(Exception e){
+		} catch (Exception e) {
 			this.r = null;
 		}
 	}
 
 	private final String fileCanonicalPath;
+	private File file;
 	private RandomAccessFile r;
 	public XFile(String file) {
 		this(new File(file));
 	}
 	public XFile(File file) {
+		this.file = file;
 		try {
 			this.fileCanonicalPath = file.getCanonicalPath();
 		} catch (IOException e) {
 			this.fileCanonicalPath = file.getAbsolutePath();
 		}
 	}
-	void init()throws IOException {
+	private void init()throws IOException {
 		if (r == null)
 			r = new RandomAccessFile(fileCanonicalPath, XStaticFixedValue.FileValue.getRandomAccessFile_Mode_RW_String());
 	}
+	public File getFile() {
+		return this.file;
+	}
 
 
 
-	/*
-	 get Extension Name
-	 得到扩展名
-	 */
-	public static String getExtensionName(String fileCanonicalPath) { 
-		if ((fileCanonicalPath != null) && (fileCanonicalPath.length() > 0)) { 
-            int dot = fileCanonicalPath.lastIndexOf('.'); 
-            if ((dot > -1) && (dot < (fileCanonicalPath.length() - 1))) { 
-                return fileCanonicalPath.substring(dot + 1, fileCanonicalPath.length()); 
-            } 
-        } 
-        return null; 
-    } 
+
+
 	public String getExtensionName() { 
-		return getExtensionName(fileCanonicalPath);
+		return XFileTool.getExtensionName(fileCanonicalPath);
 	}
-
-	/*
-	 get Name
-	 获得 文件名 带后缀
-	 */
-	public static String getName(String fileCanonicalPath) { 
-        if ((fileCanonicalPath != null) && (fileCanonicalPath.length() > 0)) { 
-            int dot = fileCanonicalPath.lastIndexOf(File.separator); 
-            if ((dot > -1) && (dot < (fileCanonicalPath.length()))) { 
-				return fileCanonicalPath.substring(dot + 1, fileCanonicalPath.length()); 
-            } 
-        } 
-        return fileCanonicalPath; 
-    } 
 	public String getName() {
-		return getName(fileCanonicalPath);
+		return XFileTool.getName(fileCanonicalPath);
 	}
-
-
-
-	/*
-	 get Name No Ex
-	 获得文件名不带扩展名 不带路径
-	 */
-	public static String getNameNoExtension(String fileCanonicalPath) { 
-        if ((fileCanonicalPath != null) && (fileCanonicalPath.length() > 0)) { 
-            int dot = fileCanonicalPath.lastIndexOf('.'); 
-            if ((dot > -1) && (dot < (fileCanonicalPath.length()))) { 
-			    int dot2 = fileCanonicalPath.lastIndexOf(File.separator, dot);
-				if (dot2 > -1)
-					return fileCanonicalPath.substring(dot2 + 1, dot);
-				return fileCanonicalPath.substring(0, dot); 
-            } 
-        } 
-        return null; 
-    } 
 	public String getNameNoExtension() {
-		return getNameNoExtension(fileCanonicalPath);
+		return XFileTool.getNameNoExtension(fileCanonicalPath);
+	}
+	
+	public static String getExtensionName(String fileCanonicalPath) { 
+		return XFileTool.getExtensionName(fileCanonicalPath);
+	}
+	public static String getName(String fileCanonicalPath) {
+		return XFileTool.getName(fileCanonicalPath);
+	}
+	public static String getNameNoExtension(String fileCanonicalPath) {
+		return XFileTool.getNameNoExtension(fileCanonicalPath);
 	}
 
 
 
 
-	
+
+
+
+
 	public InputStream getRangeInputStream(long off, long len) throws IOException {
 		XRandomAccessFileInputStream in = new XRandomAccessFileInputStream(fileCanonicalPath);
 		in.seekIndex(off);
-		return new XInputStreamFixedLength(in, len);
+		return new XNsInputStreamFixedLength(in, len);
 	}
 	public OutputStream getRangeOutputStream(long off, long len) throws IOException {
 		XRandomAccessFileOutputStream out = new XRandomAccessFileOutputStream(fileCanonicalPath);
 		out.seekIndex(off);
-		return new XOutputStreamFixedLength(out, len);
+		return new XNsOutputStreamFixedLength(out, len);
 	}
-	
-	
-	
+
+
+
 	public String getPath() {
 		return fileCanonicalPath;
 	}
-	
-	
+
+
 	public XFile append(String bytes) throws IOException {
 		byte[] bytes2 = bytes.getBytes();
 		return append(bytes2, 0, bytes2.length);
@@ -163,30 +137,33 @@ public class XFile implements Closeable {
 		r.setLength(0);
 		return this;
 	}
-	public long length() throws IOException {
-		init();
-		return r.length();
-	}
-	public String lengthFormat() throws IOException {
-		return XFileTool.fileFormatSize(String.valueOf(length()));
+	public long length() {
+		return file.length();
 	}
 	public String toString() {
 		try {
-			return new String(getBytes());
+			byte[] bs = getBytes();
+			if (bs == null)
+				return null;
+			return new String(bs);
 		} catch (IOException e) {
-			throw new ArrayStoreException("io exception");
+			throw new RuntimeException(e);
 		}
 	}
 	public String toString(String encoding) throws IOException {
 		return new String(getBytes(), encoding);
 	}
 	public byte[] getBytes() throws IOException {
+		if (!file.exists())
+			return null;
 		InputStream in = new XRandomAccessFileInputStream(fileCanonicalPath);
 		byte[] b = XStream.inputstream.toByteArray(in);
 		in.close();
 		return b;
 	}
 	public byte[] getBytes(long off, long len) throws IOException {
+		if (!file.exists())
+			return null;
 		InputStream in = getRangeInputStream(off, len);
 		byte[] b = XStream.inputstream.toByteArray(in);
 		in.close();
@@ -198,20 +175,26 @@ public class XFile implements Closeable {
 	public XFileEdit.WriteOption toFileEditWriteOption() throws FileNotFoundException, IOException {
 		return new XFileEdit.WriteOption(new File(fileCanonicalPath));
 	}
+	
+	
+	
 	public InputStream toInputStream() throws IOException {
 		return new XRandomAccessFileInputStream(fileCanonicalPath);
 	}
 	public OutputStream toOutputStream() throws IOException {
 		return new XRandomAccessFileOutputStream(fileCanonicalPath);
 	}
-
-
-
+	
+	
+	
+	
+	
+	
 	public XFile copyTo(XFile f) throws IOException {
 		return copyTo(f.fileCanonicalPath);
 	}
 	public XFile copyTo(File f) throws IOException {
-		return copyTo(f.getCanonicalPath());
+		return copyTo(f.getPath());
 	}
 	public XFile copyTo(String f) throws IOException {
 		return copyTo(f, true);
@@ -221,9 +204,11 @@ public class XFile implements Closeable {
 		File copyToFile = new File(f);
 		if (check && copyToFile.exists())
 			throw new IOException("file exist");
+		
 		XRandomAccessFileOutputStream out = new XRandomAccessFileOutputStream(f);
 		out.setLength(0);
 		out.seekIndex(0);
+
 		XRandomAccessFileInputStream in = new XRandomAccessFileInputStream(originFile);
 		XStream.copy(in, out);
 		in.close();

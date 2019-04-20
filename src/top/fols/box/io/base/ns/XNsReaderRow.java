@@ -5,26 +5,36 @@ import java.io.Reader;
 import java.util.Arrays;
 import top.fols.box.annotation.XAnnotations;
 import top.fols.box.io.XStream;
+import top.fols.box.io.interfaces.XReleaseBufferable;
 import top.fols.box.io.interfaces.XInterfacePrivateBuffOperat;
-import top.fols.box.io.interfaces.XInterfaceStreanNextRow;
+import top.fols.box.io.interfaces.XInterfaceStreamLineReader;
 import top.fols.box.statics.XStaticFixedValue;
-public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat<char[]>,XInterfaceStreanNextRow<char[]> {
+
+
+public class XNsReaderRow<T extends Reader> extends Reader implements  XInterfacePrivateBuffOperat<char[]>,XInterfaceStreamLineReader<char[]> ,XReleaseBufferable {
+
+	@Override
+	public void releaseBuffer() {
+		// TODO: Implement this method
+		buf = null;
+	}
+
 
 	@Override
 	public int getBuffSize() {
 		return buf == null ?0: buf.length;
 	}
 
-	private Reader stream = null;
+	private T stream = null;
 	private char[] buf;
 	private int readBreak = XStaticFixedValue.Stream_ReadBreak;
-	public XNsReaderRow(Reader in) {
+	public XNsReaderRow(T in) {
 		init(in, rLBufSize);
 	}
-	public XNsReaderRow(Reader in, int readLine_BuffSize) {
+	public XNsReaderRow(T in, int readLine_BuffSize) {
 		init(in, readLine_BuffSize);
 	}
-	void init(Reader in, int buffSize) {
+	private void init(T in, int buffSize) {
 		if (in == null)
 			throw new NullPointerException("stream for null");
 		if (buffSize < 1)
@@ -32,15 +42,19 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 		stream = in;
 		rLrArray = new char[rLBufSize = buffSize];
 	}
+	@Override
 	public boolean ready() throws java.io.IOException {
 		return stream.ready();
 	}
+	@Override
     public void mark(int readlimit) throws IOException {
 		stream.mark(readlimit);
 	}
+	@Override
     public boolean markSupported() {
 		return stream.markSupported();
 	}
+	@Override
 	public long skip(long n) throws java.io.IOException {
 		if (buf != null && buf.length == 0)
 			buf = null;
@@ -62,15 +76,18 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 			stream.skip(n);
 		return n;
 	}
+	@Override
 	public void reset() throws java.io.IOException {
 		buf = null;
 		stream.reset();
 	}
+	@Override
 	public void close()throws IOException {
 		if (stream != null)
 			stream.close();
-		clearBuff();
+		releaseBuffer();
 	}
+	@Override
 	public int read() throws IOException {
 		isReadcomplete = false;
 		if (buf != null && buf.length == 0)
@@ -89,6 +106,7 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 			isReadcomplete = true;
 		return read;
 	}
+	@Override
 	public int read(char[] b, int off, int len) throws IOException {
 		isReadcomplete = false;
 		if (buf != null && buf.length == 0)
@@ -123,19 +141,22 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 	//10 10 代表\n\n
 	private int rLBufSize = XStream.default_streamCharArrBuffSize;
 	private char[] rLrArray = null;//缓存
-	private XNsCharArrayWriterUtils rLReturn = new XNsCharArrayWriterUtils();
+	private XNsCharArrayWriter rLReturn = new XNsCharArrayWriter();
 	private boolean isReadcomplete = false;
 	private boolean isReadSeparator = false;
 	@Override
-	public char[] readLineDefaultSplitChar() {
+	public char[] readLineDefaultSeparator() {
 		return Chars_NextLineN;
 	}
+	@Override
 	public char[] readLine() throws IOException {
 		return readLine(Chars_NextLineN);
 	}
+	@Override
 	public char[] readLine(char[] rLSplit) throws IOException {
 		return readLine(rLSplit, true);
 	}
+	@Override
 	@XAnnotations("this will buffered data until read to separator")
 	public  char[] readLine(char[] rLSplit, boolean resultAddSplitChar) throws IOException {
 		if (buf != null && buf.length == 0)
@@ -172,12 +193,12 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 			isReadSeparator = true;
 
 			if (rLReturn.size() == 0 && !resultAddSplitChar && buf != null) {
-				rLReturn.releaseCache();
+				rLReturn.releaseBuffer();
 				return nullChars;
 			}
 		}
 		char Array[] = rLReturn.toCharArray();
-		rLReturn.releaseCache();
+		rLReturn.releaseBuffer();
 		return (Array != null && Array.length == 0) ?null: Array;
 	}
 
@@ -185,26 +206,22 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 	public  boolean isReadComplete() {
 		return isReadcomplete;
 	}
-	public boolean readLineIsReadToSeparator() {
+	@Override
+	public boolean isReadLineReadToSeparator() {
 		return isReadSeparator;
 	}
-	/*
-	 Clear Buffered
-	 清空缓存区
-	 */
-	public void clearBuff() {
-		buf = null;
-	}
+
 	/*
 	 Get Buffered 
 	 获取缓存区
 	 */
+	@Override
 	public char[] getBuff() {
 		if (buf != null && buf.length == 0)
 			buf = null;
 		return buf;
 	}
-	public Reader getStream() {
+	public T getStream() {
 		return stream;
 	}
 
@@ -212,7 +229,7 @@ public class XNsReaderRow extends Reader implements  XInterfacePrivateBuffOperat
 		if (stop - start < 0 || start < 0 || stop < 0 || start > array.length || stop > array.length)
 			return null;
 		if (stop - start < 1)
-			return XNsCharArrayReaderUtils.nullChars;
+			return XNsCharArrayReader.nullChars;
 		return Arrays.copyOfRange(array, start, stop);
 	}
 }

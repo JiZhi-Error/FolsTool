@@ -3,14 +3,20 @@ package top.fols.box.statics;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import top.fols.box.util.empty.XEmptyIterator;
-import top.fols.box.util.empty.XEmptyList;
-import top.fols.box.util.empty.XEmptyListIterator;
+import java.util.Map;
+import java.util.Set;
 
 public class XStaticFixedValue {
+	public static String DEFAULT_CHARSET_ENCODING_NAME = Charset.defaultCharset().name();
+	
+	
+	
 	public static class FileValue {
 		public static final String getRandomAccessFile_Mode_R_String() {
 			return "r";
@@ -18,15 +24,14 @@ public class XStaticFixedValue {
 		public static final String getRandomAccessFile_Mode_RW_String() {
 			return "rw";
 		}
+		public static final String getRandomAccessFile_Mode_RWS_String() {
+			return "rws";
+		}
 	}
-
-
-
-
-
-
-
-
+	
+	
+	
+	
 	public final static String[] nullStringArray = new String[0];
 	public final static byte[] nullbyteArray = new byte[0];
 	public final static long[] nulllongArray = new long[0];
@@ -46,10 +51,15 @@ public class XStaticFixedValue {
 	public final static Boolean[] nullBooleanArray = new Boolean[0];
 	public final static Float[] nullFloatArray = new Float[0];
 	public final static Short[] nullShortArray = new Short[0];
-	public final static Iterator nullIterator = new XEmptyIterator();
-	public final static List nullList = new XEmptyList();
-	public final static ListIterator nullListIterator = new XEmptyListIterator();;
-
+	public final static Iterator nullIterator = Collections.emptyIterator();
+	public final static List nullList = Collections.emptyList();
+	public final static ListIterator nullListIterator = Collections.emptyListIterator();;
+	public final static Enumeration nullEnumeration = Collections.emptyEnumeration();;
+	public final static Set nullSet = Collections.emptySet();;
+	public final static Map nullMap = Collections.emptyMap();;
+	
+	
+	
 	public final static Class[] nullClassArray = new Class[0];
 	public final static Method[] nullMethodArray = new Method[0];
 	public final static Constructor[] nullConstructorArray = new Constructor[0];
@@ -67,7 +77,5 @@ public class XStaticFixedValue {
 	public final static String String_NextLineN = "\n";
 	public final static String String_NextLineRN = "\r\n";
 	public final static int Stream_ReadBreak = -1;
-
-
 
 }

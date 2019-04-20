@@ -1,10 +1,10 @@
 package top.fols.box.util;
-import top.fols.box.io.interfaces.Destroyable;
+import top.fols.box.io.interfaces.XReleaseBufferable;
 import top.fols.box.statics.XStaticFixedValue;
 
-public class XArrayRangeLimit<S extends Object> implements Destroyable {
+public class XArrayRangeLimit<S extends Object> implements XReleaseBufferable {
 	@Override
-	public void destroyData() {
+	public void releaseBuffer() {
 		// TODO: Implement this method
 		array = XStaticFixedValue.nullObjectArray;
 		off = 0;

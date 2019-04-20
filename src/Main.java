@@ -1,117 +1,273 @@
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
 import top.fols.box.io.XStream;
-import top.fols.box.io.base.ByteArrayOutputStreamUtils;
-import top.fols.box.io.base.XHexStream;
-import top.fols.box.io.base.XIOLimiter;
-import top.fols.box.io.base.XInputStreamFixedLength;
-import top.fols.box.io.base.XInputStreamReaderRow;
+import top.fols.box.io.base.ns.XNsByteArrayOutputStream;
 import top.fols.box.io.base.ns.XNsInputStreamFixedLength;
 import top.fols.box.io.os.XFile;
+import top.fols.box.io.os.XFileEdit;
 import top.fols.box.io.os.XFileTool;
 import top.fols.box.io.os.XRandomAccessFileInputStream;
 import top.fols.box.io.os.XRandomAccessFileOutputStream;
-import top.fols.box.lang.XClassUtils;
-import top.fols.box.lang.XMath;
+import top.fols.box.lang.XClass;
+import top.fols.box.lang.XString;
+import top.fols.box.lang.reflect.tools.XReflectObjCmf;
 import top.fols.box.net.XURL;
 import top.fols.box.net.XURLConnectionTool;
+import top.fols.box.net.XURLParam;
+import top.fols.box.statics.XStaticSystem;
+import top.fols.box.time.XTiming;
 import top.fols.box.util.XArrays;
 import top.fols.box.util.XCycleSpeedLimiter;
 import top.fols.box.util.XEncodingDetect;
-import top.fols.box.util.XObjects;
-import top.fols.box.util.md5.XMD5;
-import top.fols.box.util.md5.XMD5Algorithm;
+import top.fols.box.util.XFixelArrayFill;
+import top.fols.box.util.XMessageDigest;
+import top.fols.box.util.messagedigest.XMessageDigestInterface;
 
+/*
+ * 直接使用别的库的类 类名最后会有Utils
+ */
 public class Main {
 	public static void main(String[] args) {
 		long start;
-		start = System.currentTimeMillis();
 		try {
-			//https://h5.m.taobao.com/guoguo/app-myexpress-taobao/search-express.html
-			XURLConnectionTool.get g = new XURLConnectionTool.get("https://m.sogou.com");
-			System.out.println(g.getURLConnection().getHeaderFields());
-
-			g = new XURLConnectionTool.get("https://h5api.m.taobao.com/h5/mtop.taobao.logisticsdetailtracequeryservice.querycpbymailno/1.0/?jsv=2.4.0&appKey=12574478&t=1550664343843&sign=88826e51125ddc937265e96df31330c7&api=mtop.taobao.logisticsDetailTraceQueryService.queryCpByMailNo&v=1.0&type=jsonp&dataType=jsonp&callback=mtopjsonp5&data=%7B%22mailNo%22%3A%22246191428421%22%7D");
-			g.ua(new XFile("/sdcard/HttpUa.txt").toString()); 
-			ByteArrayOutputStreamUtils insb = new ByteArrayOutputStreamUtils();
-			g.read2(insb);
-			System.out.println(new String(insb.toByteArray(), XEncodingDetect.getJavaEncode(insb.toByteArray())));
-
-
-			Thread.sleep(1000000000);
-
-			XMD5 m = new XMD5();
-			m.Update(new XFile("/storage/emulated/0/AppProjects/x/folsTool/src/top/fols/box/util/ArrayListUtils.java").getBytes());
-			System.out.println(m.asHex());
-
-
-			OutputStream o = new FileOutputStream("/sdcard/gg");
-			o.write((byte)0xff);
-			o.flush();
-
-
-			System.out.println("\t耗时:" + (System.currentTimeMillis() - start));
-			System.out.println(XMath.getBit(2222, 1000));
-
-			Thread.sleep(10000000);
-			XCycleSpeedLimiter xioread = XIOLimiter.get("FileIO");
-			xioread.setCycleMaxSpeed(1024 * 1024);//限制 每个周期时间内 最多读18M 每个块8192
-			xioread.setCycle(100);
-			xioread.setLimit(true);
-
-			System.out.println(xioread.isLimit());
-			System.out.println(xioread);
+			XCycleSpeedLimiter xioread = new XCycleSpeedLimiter()
+				.setCycleMaxSpeed(10 * 1024 * 1024)//限制 每个周期时间内 最多读18M 每个块8192
+				.setCycle(1000)
+				.setAverageSpeedUpdateCycleSize(1000)
+				.setLimit(true);
+				
+			XTiming st = XTiming.newAndStart();
 			XFileThreadCopy tread = null;
 			for (int i = 0;i < 10;i++) {
-				tread = new XFileThreadCopy("/storage/emulated/0/AppProjects/top.fols.toolboxV1.7.2T20180712x.zip", "/sdcard/" + i + ".test", xioread);
+				tread = new XFileThreadCopy("/sdcard/_SD/Phone/Src/Android Sdk Source/sources-28_r01.zip", "/sdcard/" + i + ".test", xioread);
 				tread.start();
 			}
+			double lastSpeed = 0;
 			while (true) {
 				if (false)
 					break;
 				//Thread.sleep(1000);
 				//System.out.println("当前FileIO读写取速度:" + XFileTool.FileFormatSize(xioread.getCycleUseSpeedEverySecondMax()) + " /s   剩余:" + XFileTool.FileFormatSize(xioread.getCycleFreeSpeed()));
 				//if(xioread.getEverySecondAverageSpeed()>0)
-				System.out.println();
+				//System.out.println();
 				//System.out.println(Arrays.toString(xioread.averageSpeedList.getArray()));
 				//System.out.println(Arrays.toString(xioread.averageSpeedUpdateTimeList.getArray()));
-				System.out.println("当前平均速度:" + XFileTool.fileFormatSize(xioread.getEverySecondAverageSpeed()) + "/S");
+				double a = xioread.getAverageSpeed();
+				if (lastSpeed != a) {
+					//System.out.println(a);
+					lastSpeed = a;
+				}
+				System.out.println("当前平均速度:" + XFileTool.fileUnitFormat(lastSpeed) + "/S, Hs:" + st.end().getEndLessStart());
+			}
+			Thread.sleep(69999999);
+//
+
+
+
+
+
+
+
+			XFixelArrayFill<Object> fill = new XFixelArrayFill<>(10);
+			fill.right(new Object[]{1,2,3});
+			fill.right(new Object[]{7,8,9});
+			fill.right(new Object[]{4,5,6});
+			fill.right(new Object[]{10,11,12});
+
+			System.out.println(XArrays.toString(fill.getArray()));
+
+
+			XTiming st0 = XTiming.newAndStart();
+			XFileEdit.ReadOption xfer = new XFileEdit.ReadOption(new File("/storage/emulated/0/_RedmiNote7/miui_LAVENDER_V10.2.13.0.PFGCNXM_85f3f1b262_9.0.zip"));
+			System.out.println(xfer.indexOf("cxkxyz".getBytes(), 0, xfer.length()));
+			System.out.println(st0.endAndGetEndLessStart());
+			System.out.println();
+
+
+			XTiming s = XTiming.newAndStart();
+			XMessageDigestInterface md5 = XMessageDigest.md5Instance();
+			md5.write("蔡徐坤".getBytes());
+			System.out.println("/" + md5.getHash() + "/");
+			System.out.println(s.endAndGetEndLessStart());
+
+			System.out.println("/" + XStaticSystem.getMessageDigestAlgorithms() + "/");
+
+
+			System.out.println();
+			XFileTool.saveFile(new File("/sdcard/file"), XString.repeat("1", 9).getBytes());
+			final XFileEdit.WriteOption oos = new XFileEdit.WriteOption("/sdcard/g");
+			oos.setLength(100);
+
+//			for (int i = 0;i < 100;i++) {
+//				new Thread(){
+//					public void run() {
+//						new Thread(){
+//							public void run() {
+//								try {
+//									oos.write(0, (System.currentTimeMillis() + "").getBytes());
+//								} catch (IOException e) {
+//									e.printStackTrace();
+//								}
+//							}
+//						}.start();
+//					}
+//				}.start();
+//			}
+
+
+			XURLParam xurlp = new XURLParam("?from=1012852s&%E8%94%A1%E5%BE%90%E5%9D%A4=%E8%A1%8C%E4%B8%BA");
+			System.out.println(xurlp.get("蔡徐坤"));
+			xurlp.clear();
+			xurlp.put("哈哈哈", "你球打的像蔡徐坤");
+			xurlp.put("??", "esm");
+			System.out.println(xurlp);
+			System.out.println(xurlp.param2URLFormat());
+			System.out.println(xurlp.get("哈哈哈"));
+
+
+			String urlStr = "http://tester:123456@www.baidu.com?sb?a=b&b=c&c=d#abc";
+			URL url = new URL(urlStr);
+			String protocol = url.getProtocol();
+			String host = url.getHost();
+			int port = url.getPort();
+			int defaultPort = url.getDefaultPort();
+			String query = url.getQuery();
+			String ref = url.getRef();
+			String user = url.getUserInfo();
+			String authority = url.getAuthority();
+			String file = url.getFile();
+			//Object content = url.getContent();
+			System.out.println(url.getPath());
+
+			System.out.println("______");
+			String testUrl;
+			testUrl = "http://tester:123456@www.baidu.com/s/k?s/sb?a=b  #abc/";
+			//testUrl = "http://127.0.0.1:7777/_HM4X/1qw/r/t/b";
+			//testUrl = "http://127.0.0.1:7777?/post=4/_HM4X/1qw/r/t/b";
+			//testUrl = "http://127.0.0.1:7777/l/..?path=%2F_PhoneFile%2F/listmode=1";
+			testUrl = "http://tester:123456@www.baidu.com//a///b///c/..//?sb//../..///?a=b&b=c&c=d//../#cxk";
+
+			System.out.println(testUrl);
+			XURL tsx = new XURL(testUrl).abs();
+			System.out.println(tsx);
+			Method[] ms = XURL.class.getMethods();
+			for (Method m:ms) {
+				if (m.getParameterTypes().length == 0) {
+					System.out.println(m.getName() + " ==> " + m.invoke(tsx));
+				}
+			}
+			System.out.println("______");
+
+			Thread.sleep(1000000);
+
+
+
+			XCycleSpeedLimiter limiter = new XCycleSpeedLimiter();
+			limiter.setCycle(1000);
+			limiter.setCycleMaxSpeed(8191);
+			limiter.setLimit(true);
+			while (true) {
+				limiter.waitForFreeLong(8191, false);
+				//System.out.println(limiter.getCycleUseSpeed() + " / " + limiter.getCycleFreeSpeed() + " | " + limiter.getEverySecondAverageSpeed());
+
+
+				if (false) break;
 			}
 
-
-			Thread.sleep(69999999);
-
-			XStream.copy(new XRandomAccessFileInputStream("/sdcard/AppProjects/sources-27_r01.zip"), new XHexStream.EncOutputStream(new XRandomAccessFileOutputStream("/sdcard/hex").setLength(0)));
-			XStream.copy(new XHexStream.DecInputStream(new XRandomAccessFileInputStream("/sdcard/hex")), new XRandomAccessFileOutputStream("/sdcard/hexDec").setLength(0));
-//			
-//			InputStream indep = new XHexStream.DecInputStream(XStream.wrapInputStream(XHexStream.encode("呵呵1".getBytes())));
-//			System.out.println(Arrays.toString(XHexStream.decode(XHexStream.encode("呵呵1".getBytes()))));
-//			
-//			XStream.copy(indep,null);
+			limiter.waitForFreeLong(1);
+			System.out.println(limiter.getCycleUseSpeed() + "/" + limiter.getCycleFreeSpeed());
+			limiter.waitForFreeLong(1);
+			System.out.println(limiter.getCycleUseSpeed() + "/" + limiter.getCycleFreeSpeed());
 
 
+			System.out.println(XArrays.toString(XReflectObjCmf.defaultInstance.getObjMethods(Main.class, "main")));
+			System.out.println(XFile.getNameNoExtension("/./a.d.xfe"));
+			System.out.println(XFileTool.getFormatPath("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();").equals(new File("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();").getCanonicalPath()));
+			System.out.println(XFileTool.getFormatPath("..//XSt/*?:]/tt/////.//././///////../.././a/b/v//x//a/v**v//n///...//../../();"));
+			System.out.println(new File("..//XSt/*?:]/tt/////.//././///////../.././a/b/v//x//a/v**v//n///...//../../();"));
+			System.out.println(XFileTool.getFormatPath("hhh*/.././//////gggghjj/../..ggg/rrrf"));
+
+			start = System.currentTimeMillis();
+
+			Thread.sleep(1000000);
+
+			start = System.currentTimeMillis();
+			//for (int i = 0;i < 10000 * 100;i++) new XURL ("http://_HM4X/k/h/hk?#/u&r#?a=8#??_#hash.html#?a=b"); System.out.println(System.currentTimeMillis() - start);
 			System.out.println(System.currentTimeMillis() - start);
-			System.out.println("我们不一样");
-			Thread.sleep(66666666);
-			XInputStreamReaderRow Row = new XInputStreamReaderRow(new XRandomAccessFileInputStream(new File("/sdcard/reader.txt")));
-			Row.setLineSplitChar("我乃神人".toCharArray());
-			System.out.println(Arrays.toString(XObjects.tointArray(Row.readLine(false))));
-			System.out.println(Row.getReadLineReadToByteLength());
-			System.out.println(Arrays.toString(XObjects.tointArray(Row.readLine(false))));
-			System.out.println(Row.getReadLineReadToByteLength());
-			System.out.println(Arrays.toString(XObjects.tointArray(Row.readLine(false))));
-
-			System.out.println("\t序耗时:" + (System.currentTimeMillis() - start));
 
 
-			Thread.sleep(6666666);
+
+			System.out.println(XURL.abs("    http://127.0.0.1:7777/_HM4X/k/h/hk?                /u&r#?a=8#??_#hash.html#?a=b").getParam() + ",");
+			System.out.println(XURL.abs("http://127.0.0.1:7777/_HM4X/1qw/r/t/b").getParent());
+			System.out.println("_________");
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/gvv/e/ec/cc../.././gg/sss/")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/gvv/e/ec/cc../.././gg/sss/u")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/gvv/e/ec/cc../.././gg/sss")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/sss/..")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/sss/a/..")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/..")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl")).getParent());
+
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/aaa/bbb")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/aa")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/..")).getParent());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl")).getDirName());
+			System.out.println("_________");
+
+			System.out.println(XURL.abs(("http://a.com/gvv/e/ec/cc../.././gg/sss/")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/gvv/e/ec/cc../.././gg/sss/u")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/gvv/e/ec/cc../.././gg/sss")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/sss/..")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/sss/a/..")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/a/../..")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/aaa/bbb")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/aa")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/..")).getFilePath());
+			System.out.println(XURL.abs(("http://_HM4X:nmsl/aa/a/s/")).getParent().getUrlFormat());
+			System.out.println(XURL.abs("http://_HM4X:nmsl/sb?a=a&k=m").getRoot());
+
+			System.out.println("_________");
+
+
+//			XInputStreamReaderRow Row = new XInputStreamReaderRow(XStream.wrapInputStream("".getBytes()));
+//			Row.setLineSplitChar("我乃神人".toCharArray());
+//			System.out.println(Arrays.toString(XObjects.tointArray(Row.readLine(false))));
+//			System.out.println(Row.getReadLineReadToByteLength());
+//			System.out.println(Arrays.toString(XObjects.tointArray(Row.readLine(false))));
+//			System.out.println(Row.getReadLineReadToByteLength());
+//			System.out.println(Arrays.toString(XObjects.tointArray(Row.readLine(false))));
+//			System.out.println("\t序耗时:" + (System.currentTimeMillis() - start));
+//			Thread.sleep(6666666);
+//			
+//			
+
+			XURL xurl = new XURL("http://sm.ms/fff?w=hdhdhd&h=888&p///=nmsl&a=" + URLEncoder.encode(URLEncoder.encode(new String("测试一下下"))) + "   ");
+			XURLParam pa = xurl.getParam();
+
+			//https://h5.m.taobao.com/guoguo/app-myexpress-taobao/search-express.html
+			XURLConnectionTool.get g = new XURLConnectionTool.get("https://m.sogou.com");
+			System.out.println(g.getURLConnection().getHeaderFields());
+
+			g = new XURLConnectionTool.get("https://h5api.m.taobao.com/h5/mtop.taobao.logisticsdetailtracequeryservice.querycpbymailno/1.0/?jsv=2.4.0&appKey=12574478&t=1550664343843&sign=88826e51125ddc937265e96df31330c7&api=mtop.taobao.logisticsDetailTraceQueryService.queryCpByMailNo&v=1.0&type=jsonp&dataType=jsonp&callback=mtopjsonp5&data=%7B%22mailNo%22%3A%22246191428421%22%7D");
+			g.ua(new XFile("/sdcard/HttpUa.txt").toString()); 
+			XNsByteArrayOutputStream insb = new XNsByteArrayOutputStream();
+			g.read2(insb);
+			System.out.println(new String(insb.toByteArray(), XEncodingDetect.getJavaEncode(insb.toByteArray())));
+
+
+			Thread.sleep(1000000000);
+
+
+			System.out.println("\t耗时:" + (System.currentTimeMillis() - start));
 
 			System.out.println("____");
 
@@ -121,11 +277,11 @@ public class Main {
 			System.out.println(fixed.read());
 			System.out.println(fixed.read());
 
-			System.out.println(fixed.isFixedLengthAvailable());
-			fixed.setFixedLength(false);
-			System.out.println(fixed.isFixedLengthAvailable());
+			System.out.println(fixed.isAvailable());
+			fixed.fixed(false);
+			System.out.println(fixed.isAvailable());
 
-			fixed.setFixedLengthMaxSize(4);
+			fixed.setMaxUseLength(4);
 			byte[] bytes = new byte[8];
 			System.out.println("read=" + fixed.read(bytes));
 			System.out.println(Arrays.toString(bytes));
@@ -133,7 +289,7 @@ public class Main {
 
 
 			Thread.sleep(6666666);
-			System.out.println(XClassUtils.isInstance(8, Integer.class));
+			System.out.println(XClass.isInstance(8, Integer.class));
 
 
 
@@ -176,7 +332,7 @@ public class Main {
 
 			Thread.sleep(100000);
 
-			XCycleSpeedLimiter xioread = XIOLimiter.get("FileIO");
+			XCycleSpeedLimiter xioread = new XCycleSpeedLimiter();
 			xioread.setCycleMaxSpeed(24 * 1024 * 1024);//限制 每个周期时间内 最多读18M 每个块8192
 			xioread.setCycle(500);
 			xioread.setLimit(true);
@@ -194,7 +350,7 @@ public class Main {
 				//Thread.sleep(1000);
 				//System.out.println("当前FileIO读写取速度:" + XFileTool.FileFormatSize(xioread.getCycleUseSpeedEverySecondMax()) + " /s   剩余:" + XFileTool.FileFormatSize(xioread.getCycleFreeSpeed()));
 				//if(xioread.getEverySecondAverageSpeed()>0)
-				System.out.println("当前平均速度:" + XFileTool.fileFormatSize(xioread.getEverySecondAverageSpeed()) + "/S");
+				System.out.println("当前平均速度:" + XFileTool.fileUnitFormat(xioread.getAverageSpeed()) + "/S");
 			}
 
 
@@ -285,12 +441,12 @@ public class Main {
 
 				InputStream in;
 				in = new XRandomAccessFileInputStream(randomIn);
-				in = new XInputStreamFixedLength(in, copylength);
-				in = XIOLimiter.wrap(in, Xiolimit);
+				in = new XNsInputStreamFixedLength(in, copylength);
+				in = XCycleSpeedLimiter.wrap(in, Xiolimit);
 
 				OutputStream out;
 				out = new XRandomAccessFileOutputStream(randomOut, start);
-				out = XIOLimiter.wrap(out, Xiolimit);
+				//out = XCycleSpeedLimiter.wrap(out, Xiolimit);
 
 				byte[] buffer = new byte[8192];
 				int read = -1;

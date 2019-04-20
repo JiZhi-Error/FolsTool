@@ -5,14 +5,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import top.fols.box.lang.XClassUtils;
+import top.fols.box.lang.XClass;
 import top.fols.box.statics.XStaticBaseType;
 import top.fols.box.statics.XStaticFixedValue;
 public class XObjects {
 	public static <S> List<S> keys(Map<S,?> map) {
 		if (map.size() == 0)
 			return XStaticFixedValue.nullList;
-		List<S> list = new ArrayListUtils<>();
+		List<S> list = new XArrayList<>();
 		Set<S> set = map.keySet();
 		for (S key:set)
 			list.add(key);
@@ -20,16 +20,6 @@ public class XObjects {
 	}
 	
 	
-	public void clear(StringBuilder buf){
-		if(isEmpty(buf))
-			return;
-		buf.delete(0,buf.length());
-	}
-	public void clear(StringBuffer buf){
-		if(isEmpty(buf))
-			return;
-		buf.delete(0,buf.length());
-	}
 	
 	
 	
@@ -57,13 +47,13 @@ public class XObjects {
     }
 
 	public static <T> T requireInstanceOf(T obj, Class cls) {
-        if (!XClassUtils.isInstance(obj, cls))
+        if (!XClass.isInstance(obj, cls))
             throw new ClassCastException((obj == null ?null: obj.getClass().getCanonicalName()) + " cannot cast to " + cls.getCanonicalName());
         return obj;
     }
 	public static <T> T requireInstanceOf(T obj, Class cls, String errorMessage) {
 
-        if (!XClassUtils.isInstance(obj, cls))
+        if (!XClass.isInstance(obj, cls))
             throw new ClassCastException(errorMessage);
         return obj;
     }

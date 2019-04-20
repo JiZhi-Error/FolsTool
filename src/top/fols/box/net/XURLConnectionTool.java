@@ -10,23 +10,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import top.fols.box.io.XStream;
-import top.fols.box.io.base.ByteArrayOutputStreamUtils;
-import top.fols.box.io.base.XInputStreamFixedLength;
-import top.fols.box.io.base.ns.XNsCharArrayReaderUtils;
+import top.fols.box.io.base.ns.XNsByteArrayOutputStream;
+import top.fols.box.io.base.ns.XNsCharArrayReader;
+import top.fols.box.io.base.ns.XNsInputStreamFixedLength;
 import top.fols.box.statics.XStaticFixedValue;
-import top.fols.box.util.XArraysUtils;
+import top.fols.box.util.XArrays2;
 import top.fols.box.util.XMap;
 import top.fols.box.util.XObjects;
 
 public class XURLConnectionTool {
 	public static class UA {
-		/*
-		 设置请求头
-
-		 直接可以使用
-		 Content-xxx:xxxxx
-		 Cookie:xxxxx
-		 */
 		private static char[] trim(char[] b) {
 			if (b == null)
 				return b;
@@ -54,12 +47,15 @@ public class XURLConnectionTool {
 				return b;
 			}
 		}
+		/*
+		 * deal multi line
+		 */
 		private static void deal(String ua, UA m) {
-			XNsCharArrayReaderUtils rowStreanm = new XNsCharArrayReaderUtils(ua.toCharArray());
+			XNsCharArrayReader rowStreanm = new XNsCharArrayReader(ua.toCharArray());
 			char byteArray[];
 			char splitchar = ':';
 			while ((byteArray = rowStreanm.readLine()) != null) {
-				int splistCharindex = XArraysUtils.indexOf(byteArray, splitchar, 0, byteArray.length);
+				int splistCharindex = XArrays2.indexOf(byteArray, splitchar, 0, byteArray.length);
 				String trim1 = null,trim2 = null;
 				if (splistCharindex != -1) {
 					trim1 = new String(byteArray, 0, splistCharindex);
@@ -68,6 +64,7 @@ public class XURLConnectionTool {
 					if (!trim1.equals(""))
 						m.Key.put(trim1, trim2);
 				}
+
 				byteArray = null;
 			}
 		}
@@ -85,6 +82,9 @@ public class XURLConnectionTool {
 			this.Key.put(k, v);
 			return this;
 		}
+		/*
+		 * deal multi line able
+		 */
 		public UA putAll(String Content) {
 			deal(Content, this);
 			return this;
@@ -94,7 +94,7 @@ public class XURLConnectionTool {
 			for (String s:Content)
 				buf.append(s).append(XStaticFixedValue.String_NextLineN);
 			putAll(buf.toString());
-			buf.delete(0, buf.length());
+			buf = null;
 			return this;
 		}
 		public String get(String k) {
@@ -120,13 +120,12 @@ public class XURLConnectionTool {
 		@Override
 		public String toString() {
 			// TODO: Implement this method
-			StringBuffer buf = new StringBuffer();
+			StringBuilder buf = new StringBuilder();
 			for (String k:keys()) {
 				buf.append(k).append(':').append(' ').append(get(k)).append("\r\n");
 			}
 			return buf.toString();
 		}
-
 
 
 
@@ -226,12 +225,23 @@ public class XURLConnectionTool {
 			return toString(null);
 		}
 		public String toString(String encoding) {
-			ByteArrayOutputStreamUtils BackOutput = new ByteArrayOutputStreamUtils();
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
 			try {
 				read2(BackOutput);
 				if (encoding == null)
 					return BackOutput.toString();
 				return BackOutput.toString(encoding);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		public byte[] toBytes() {
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
+			try {
+				read2(BackOutput);
+				byte[] bs = BackOutput.toByteArray();
+				BackOutput.releaseBuffer();
+				return bs;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -324,7 +334,7 @@ public class XURLConnectionTool {
 				ua.setToURLConnection(con);
 				writeORread = true;
 			}
-			XStream.copy(new XInputStreamFixedLength(BackOutput, length), getOutputStream());
+			XStream.copy(new XNsInputStreamFixedLength(BackOutput, length), getOutputStream());
 			return this;
 		}
 		public void disconnect() {
@@ -357,7 +367,7 @@ public class XURLConnectionTool {
 			return toString(null);
 		}
 		public String toString(String encoding) {
-			ByteArrayOutputStreamUtils BackOutput = new ByteArrayOutputStreamUtils();
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
 			try {
 				read2(BackOutput);
 				if (encoding == null)
@@ -367,6 +377,19 @@ public class XURLConnectionTool {
 				throw new RuntimeException(e);
 			}
 		}
+
+		public byte[] toBytes() {
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
+			try {
+				read2(BackOutput);
+				byte[] bs = BackOutput.toByteArray();
+				BackOutput.releaseBuffer();
+				return bs;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 	}
 
 
@@ -392,7 +415,7 @@ public class XURLConnectionTool {
 		return Content;
 	}
 	public static String get(URLConnection con , String encode,  int ConnectTimeout, int ReadTimeout, String data) throws IOException {
-		ByteArrayOutputStreamUtils byteoutput = new ByteArrayOutputStreamUtils();
+		XNsByteArrayOutputStream byteoutput = new XNsByteArrayOutputStream();
 		get(con, ConnectTimeout, ReadTimeout, new UA(data), byteoutput, false);
 		if (encode != null)
 			return new String(byteoutput.toByteArray(), encode);
@@ -429,7 +452,7 @@ public class XURLConnectionTool {
 		return Content;
 	}
 	public static String post(URLConnection con, String encode, int ConnectTimeout, int ReadTimeout, String ua, InputStream postdata) throws IOException {
-		ByteArrayOutputStreamUtils byteoutput = new ByteArrayOutputStreamUtils();
+		XNsByteArrayOutputStream byteoutput = new XNsByteArrayOutputStream();
 		post(con, ConnectTimeout, ReadTimeout, new UA(ua), postdata, byteoutput, false);
 		if (encode != null)
 			return new String(byteoutput.toByteArray(), encode);
@@ -446,11 +469,9 @@ public class XURLConnectionTool {
 		if (close)
 			get.disconnect();
 	}
-
-
-
-
-
+	
+	
+	
 	public static final int defaultConnectTimeout = 12000;
 	public static final int defaultReadTimeout = 6000;
 }

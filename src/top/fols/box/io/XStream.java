@@ -6,14 +6,13 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import top.fols.box.io.base.ByteArrayInputStreamUtils;
-import top.fols.box.io.base.ByteArrayOutputStreamUtils;
-import top.fols.box.io.base.CharArrayWriterUtils;
-import top.fols.box.io.base.ns.XNsByteArrayInputStreamUtils;
-import top.fols.box.io.base.ns.XNsCharArrayReaderUtils;
+import top.fols.box.io.base.ns.XNsByteArrayInputStream;
+import top.fols.box.io.base.ns.XNsByteArrayOutputStream;
+import top.fols.box.io.base.ns.XNsCharArrayReader;
 import top.fols.box.io.base.ns.XNsInputStreamFixedLength;
 import top.fols.box.io.base.ns.XNsReaderFixedLength;
-import top.fols.box.io.base.ns.XNsStringReaderUtils;
+import top.fols.box.io.base.ns.XNsStringReader;
+import top.fols.box.io.base.ns.XNsCharArrayWriter;
 
 public class XStream {
 	public static final int default_streamByteArrBuffSize = 8192;
@@ -130,9 +129,11 @@ public class XStream {
 		}
 		public static byte[] toByteArray(InputStream input) throws IOException {
 			if (input != null) {
-				ByteArrayOutputStreamUtils byteArrayout =  new ByteArrayOutputStreamUtils();
+				XNsByteArrayOutputStream byteArrayout =  new XNsByteArrayOutputStream();
 				copy(input, byteArrayout);
-				return byteArrayout.toByteArray();
+				byte[] bs = byteArrayout.toByteArray();
+				byteArrayout.releaseBuffer();
+				return bs;
 			}
 			return null;
 		}
@@ -143,21 +144,25 @@ public class XStream {
 		}
 		public static char[] toCharArray(Reader input) throws IOException {
 			if (input != null) {
-				CharArrayWriterUtils Arrayout =  new CharArrayWriterUtils();
+				XNsCharArrayWriter Arrayout =  new XNsCharArrayWriter();
 				copy(input, Arrayout);
-				return Arrayout.toCharArray();
+				char[] cs = Arrayout.toCharArray();
+				Arrayout.releaseBuffer();
+				return cs;
 			}
 			return null;
 		}
 	}
 	public static class object {
 		public static byte[] toByteArray(Object obj) throws IOException {
-			ByteArrayOutputStreamUtils out = new ByteArrayOutputStreamUtils();
+			XNsByteArrayOutputStream out = new XNsByteArrayOutputStream();
 			writeObject(out, obj);
-			return out.toByteArray();
+			byte[] bs = out.toByteArray();
+			out.releaseBuffer();
+			return bs;
 		}
 		public static Object toObject(byte[] bytes) throws ClassNotFoundException, IOException {
-			ByteArrayInputStreamUtils in = new ByteArrayInputStreamUtils(bytes);
+			XNsByteArrayInputStream in = new XNsByteArrayInputStream(bytes);
 			return readObject(in);
 		}
 	}
@@ -165,13 +170,13 @@ public class XStream {
 
 
 
-	public static XNsByteArrayInputStreamUtils wrapInputStream(byte[] bytes) {
-		return new XNsByteArrayInputStreamUtils(bytes);
+	public static XNsByteArrayInputStream wrapInputStream(byte[] bytes) {
+		return new XNsByteArrayInputStream(bytes);
 	}
-	public static XNsCharArrayReaderUtils wrapReader(char[] bytes) {
-		return new XNsCharArrayReaderUtils(bytes);
+	public static XNsCharArrayReader wrapReader(char[] bytes) {
+		return new XNsCharArrayReader(bytes);
 	}
-	public static XNsStringReaderUtils wrapReader(String bytes) {
-		return new XNsStringReaderUtils(bytes);
+	public static XNsStringReader wrapReader(String bytes) {
+		return new XNsStringReader(bytes);
 	}
 }

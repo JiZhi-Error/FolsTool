@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.Reader;
 import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
 
-public class XNsReaderFixedLength extends Reader implements XInterfaceStreamFixedLength<Reader> {
-	private Reader stream;
-	protected long maxCount;
-	protected long nowCount;
-	protected boolean fixed;
-	public XNsReaderFixedLength(Reader stream, long maxCount) {
+
+public class XNsReaderFixedLength<T extends Reader> extends Reader implements XInterfaceStreamFixedLength<Reader> {
+	private T stream;
+	private long maxCount;
+	private long nowCount;
+	private boolean fixed;
+	public XNsReaderFixedLength(T stream, long maxCount) {
 		if (stream == null)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
@@ -31,6 +32,7 @@ public class XNsReaderFixedLength extends Reader implements XInterfaceStreamFixe
 			nowCount++;
 		return read;
 	}
+	@Override
     public int read(char[] b, int off, int len) throws java.io.IOException {
 		if (len < 0)
 			return -1;
@@ -51,59 +53,74 @@ public class XNsReaderFixedLength extends Reader implements XInterfaceStreamFixe
 
 
 
+	@Override
 	public boolean ready() throws java.io.IOException {
 		return stream.ready();
 	}
+	@Override
     public long skip(long n) throws java.io.IOException {
 		return stream.skip(n);
 	}
+	@Override
     public void reset() throws java.io.IOException {
 		stream.reset();
 	}
+	@Override
     public boolean markSupported() {
 		return stream.markSupported();
 	}
+	@Override
 	public void close() throws java.io.IOException {
 		stream.close();
 	}
+	@Override
     public void mark(int readlimit) throws IOException {
 		stream.mark(readlimit);
 	}
 
 
 
-	public long getFixedLengthFree() {
+	@Override
+	public long getFreeLength() {
 		return maxCount - nowCount;
 	}
-	public boolean isFixedLengthAvailable() {
+	@Override
+	public boolean isAvailable() {
 		return !fixed || fixed && nowCount < maxCount;
 	}
 
-	public long getFixedLengthUseSize() {
+	@Override
+	public long getUseLength() {
 		return nowCount;
 	}
-	public void resetFixedLengthUseSize() {
+	@Override
+	public void resetUseLength() {
 		nowCount = 0;
 	}
 
-	public long getFixedLengthMaxSize() {
+	@Override
+	public long getMaxUseLength() {
 		return maxCount;
 	}
-	public void setFixedLengthMaxSize(long maxCount) {
+	@Override
+	public void setMaxUseLength(long maxCount) {
 		this.maxCount = maxCount;
 	}
 
-	public void setFixedLength(boolean b) {
+	@Override
+	public void fixed(boolean b) {
 		this.fixed = b;
 	}
-	public boolean getFixedLength() {
+	@Override
+	public boolean isFixed() {
 		return fixed;
 	}
 
 
 
 
-	public Reader getStream() {
+	@Override
+	public T getStream() {
 		return stream;
 	}
 

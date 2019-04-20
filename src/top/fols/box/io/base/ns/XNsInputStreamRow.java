@@ -5,22 +5,30 @@ import java.io.InputStream;
 import java.util.Arrays;
 import top.fols.box.annotation.XAnnotations;
 import top.fols.box.io.XStream;
-import top.fols.box.io.base.ByteArrayInputStreamUtils;
 import top.fols.box.io.interfaces.XInterfacePrivateBuffOperat;
-import top.fols.box.io.interfaces.XInterfaceStreanNextRow;
+import top.fols.box.io.interfaces.XInterfaceStreamLineReader;
+import top.fols.box.io.interfaces.XReleaseBufferable;
 import top.fols.box.statics.XStaticFixedValue;
-public class XNsInputStreamRow  extends InputStream implements XInterfacePrivateBuffOperat<byte[]>,XInterfaceStreanNextRow<byte[]> {
 
-	private InputStream stream = null;
+
+public class XNsInputStreamRow<T extends InputStream>  extends InputStream implements XInterfacePrivateBuffOperat<byte[]>,XInterfaceStreamLineReader<byte[]> ,XReleaseBufferable{
+
+	@Override
+	public void releaseBuffer() {
+		// TODO: Implement this method
+		buf = null;
+	}
+	
+	private T stream = null;
 	private byte[] buf;
 	private int readBreak = XStaticFixedValue.Stream_ReadBreak;
-	public XNsInputStreamRow(InputStream in) {
+	public XNsInputStreamRow(T in) {
 		init(in, rLBufSize);
 	}
-	public XNsInputStreamRow(InputStream in, int readLine_BuffSize) {
+	public XNsInputStreamRow(T in, int readLine_BuffSize) {
 		init(in, readLine_BuffSize);
 	}
-	void init(InputStream in, int buffSize) {
+	private void init(T in, int buffSize) {
 		if (in == null)
 			throw new NullPointerException("stream for null");
 		if (buffSize < 1)
@@ -28,12 +36,15 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 		stream = in;
 		rLrArray = new byte[rLBufSize = buffSize];
 	}
+	@Override
     public void mark(int readlimit) {
 		stream.mark(readlimit);
 	}
+	@Override
     public boolean markSupported() {
 		return stream.markSupported();
 	}
+	@Override
 	public  long skip(long n) throws java.io.IOException {
 		if (buf != null && buf.length == 0)
 			buf = null;
@@ -55,10 +66,12 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 			stream.skip(n);
 		return n;
 	}
+	@Override
 	public void reset() throws java.io.IOException {
 		buf = null;
 		stream.reset();
 	}
+	@Override
 	public int available()throws IOException {
 		if (buf != null && buf.length == 0)
 			buf = null;
@@ -66,11 +79,13 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 			return buf.length;
 		return stream.available();
 	}
+	@Override
 	public void close()throws IOException {
 		if (stream != null)
 			stream.close();
-		clearBuff();
+		releaseBuffer();
 	}
+	@Override
 	public  int read() throws IOException {
 		isReadComplete = false;
 		if (buf != null && buf.length == 0)
@@ -89,6 +104,7 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 			isReadComplete = true;
 		return read;
 	}
+	@Override
 	public  int read(byte[] b, int off, int len) throws IOException {
 		isReadComplete = false;
 		if (buf != null && buf.length == 0)
@@ -123,19 +139,22 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 	//10 10 代表\n\n
 	private int rLBufSize = XStream.default_streamByteArrBuffSize;
 	private byte[] rLrArray = null;//缓存
-	private XNsByteArrayOutputStreamUtils rLReturn = new XNsByteArrayOutputStreamUtils();
+	private XNsByteArrayOutputStream rLReturn = new XNsByteArrayOutputStream();
 	private boolean isReadComplete = false;
 	private boolean isReadSeparator = false;
 	@Override
-	public byte[] readLineDefaultSplitChar() {
+	public byte[] readLineDefaultSeparator() {
 		return Bytes_NextLineN;
 	}
+	@Override
 	public byte[] readLine() throws IOException {
 		return readLine(Bytes_NextLineN);
 	}
+	@Override
 	public byte[] readLine(byte[] rLSplit) throws IOException {
 		return readLine(rLSplit, true);
 	}
+	@Override
 	@XAnnotations("this will buffered data until read to separator")
 	public  byte[] readLine(byte[] rLSplit, boolean resultAddSplitChar) throws IOException {
 		if (buf != null && buf.length == 0)
@@ -172,48 +191,39 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 			isReadSeparator = true;
 
 			if (rLReturn.size() == 0 && !resultAddSplitChar && buf != null) {
-				rLReturn.releaseCache();
+				rLReturn.releaseBuffer();
 				return nullBytes;
 			}
 		}
 		byte Array[] = rLReturn.toByteArray();
-		rLReturn.releaseCache();
+		rLReturn.releaseBuffer();
 		return (Array != null && Array.length == 0) ?null: Array;
 	}
-
-
-
-
 	@XAnnotations("last read stream result equals -1")
 	public  boolean isReadComplete() {
 		return isReadComplete;
 	}
-	public  boolean readLineIsReadToSeparator() {
+	@Override
+	public  boolean isReadLineReadToSeparator() {
 		return isReadSeparator;
 	}
-
 	@Override
 	public int getBuffSize() {
 		return buf == null ?0: buf.length;
 	}
-	/*
-	 Clear Buffered
-	 清空缓存区
-	 */
-	public  void clearBuff() {
-		buf = null;
-	}
+	
 	/*
 	 Get Buffered 
 	 获取缓存区
 	 */
+	@Override
 	public byte[] getBuff() {
 		if (buf != null && buf.length == 0)
 			buf = null;
 		return buf;
 	}
 
-	public InputStream getStream() {
+	public T getStream() {
 		return stream;
 	}
 
@@ -221,7 +231,7 @@ public class XNsInputStreamRow  extends InputStream implements XInterfacePrivate
 		if (stop - start < 0 || start < 0 || stop < 0 || start > array.length || stop > array.length)
 			return null;
 		if (stop - start < 1)
-			return ByteArrayInputStreamUtils.nullBytes;
+			return XNsByteArrayInputStream.nullBytes;
 		return Arrays.copyOfRange(array, start, stop);
 	}
 }

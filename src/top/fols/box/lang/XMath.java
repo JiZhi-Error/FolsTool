@@ -45,16 +45,7 @@ public abstract class XMath {
             res = res * 10 + x % 10;
         return res;
     }
-	//把long分割为long[]
-	public static long[] splitLongSingerChar(long l) {
-		if (l > -10 && l < 10)
-			return new long[]{l};
-		int length = getNumLength(l);
-		long[] newlong = new long[length];
-		for (int i = newlong.length - 1;i >= 0;i--)
-			newlong[i] = getBit(l, newlong.length - i);
-		return newlong;
-	}
+	
 
 
 

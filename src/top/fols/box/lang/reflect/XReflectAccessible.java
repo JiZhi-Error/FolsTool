@@ -7,9 +7,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
-import top.fols.box.util.ArrayListUtils;
+import top.fols.box.util.XArrayList;
 import top.fols.box.util.HashMapUtils9;
-import top.fols.box.util.XArraysUtils;
+import top.fols.box.util.XArrays2;
 
 public class XReflectAccessible {
 	public static void setAccessible(boolean b, AccessibleObject...a) {
@@ -69,7 +69,7 @@ public class XReflectAccessible {
 		return t;
 	}
 	public static Method[] getMethodsAll(Class cls) {
-		List<Method> Methods = new ArrayListUtils<>();
+		List<Method> Methods = new XArrayList<>();
 
 		Method[] Methods0 = cls.getMethods();
 		for (Method c:Methods0)
@@ -82,7 +82,7 @@ public class XReflectAccessible {
 			int ik = -1;
 			for (int index = 0;index < Methods.size();index++) {
 				Method f2 = Methods.get(index);
-				if (f.getName().equals(f2.getName())  && XArraysUtils.arrayContentsEquals(f.getParameterTypes(), f2.getParameterTypes())) {
+				if (f.getName().equals(f2.getName())  && XArrays2.arrayContentsEquals(f.getParameterTypes(), f2.getParameterTypes())) {
 					ik = index;
 					break;
 				}
@@ -98,7 +98,7 @@ public class XReflectAccessible {
 	public static Method[] getMethodsAll(Class cls, String methodName) {
 		if (cls == null || methodName == null)
 			return null;
-		List<Method> list = new ArrayListUtils<Method>();
+		List<Method> list = new XArrayList<Method>();
 		Method[] m = getMethodsAll(cls);
 		for (int i = 0;i < m.length;i++)
 			if (methodName.equals(m[i].getName()))

@@ -4,12 +4,16 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import top.fols.box.annotation.XAnnotations;
+import top.fols.box.io.XStream;
 import top.fols.box.io.interfaces.XInterfaceRandomAccessInputStream;
 import top.fols.box.io.interfaces.XInterfaceRandomAccessOutputStream;
 import top.fols.box.util.XArrayPieceManager;
-import top.fols.box.util.sequence.interfaces.XInterfaceSequenceIOBigByte;
+import top.fols.box.util.interfaces.sequence.byteutil.XInterfaceSequenceBigByteIO;
+
 public class XFileEdit {
-	public static class ReadOption implements Closeable,XInterfaceSequenceIOBigByte {
+
+	public static class ReadOption implements Closeable,XInterfaceSequenceBigByteIO {
 		public static ReadOption wrap(File file) throws IOException {
 			return new ReadOption(file);
 		}
@@ -22,7 +26,7 @@ public class XFileEdit {
 
 		private ReadOption() {}
 		public ReadOption(XInterfaceRandomAccessInputStream randomFileStream) throws IOException {
-			this(randomFileStream, XArrayPieceManager.pieceBufDefaultSize);
+			this(randomFileStream, XStream.default_streamByteArrBuffSize);
 		}
 		public ReadOption(XInterfaceRandomAccessInputStream randomFileStream, int PieceBufSize) throws IOException {
 			if (PieceBufSize < 1)
@@ -37,9 +41,11 @@ public class XFileEdit {
 			this(new XRandomAccessFileInputStream(file), PieceBufSize);
 		}
 		public ReadOption(File file) throws FileNotFoundException, IOException {
-			this(new XRandomAccessFileInputStream(file), XArrayPieceManager.pieceBufDefaultSize);
+			this(new XRandomAccessFileInputStream(file), XStream.default_streamByteArrBuffSize);
 		}
-
+		public ReadOption(String file) throws FileNotFoundException, IOException {
+			this(new File(file));
+		}
 
 		public long getPieceBuffSize() {
 			return xpm.getPieceBufSize();
@@ -99,9 +105,11 @@ public class XFileEdit {
 				nowPieceEnd = end;
 			}
 		}
+		
+		
+//			if (index < 0 || index >= length)
+//				throw new ArrayIndexOutOfBoundsException(String.format("index=%s filelength=%s", index, length));
 		public byte byteAt(long index) throws IOException {
-			if (index < 0 || index >= length)
-				throw new ArrayIndexOutOfBoundsException(String.format("index=%s filelength=%s", index, length));
 			if (!(nowPieceStart >= index && nowPieceEnd <= index))
 				grow(index);
 			return nowpieceData[(int)(index % pieceBufSize)];
@@ -202,8 +210,7 @@ public class XFileEdit {
 		}
 	}
 
-
-
+	@XAnnotations()
 	public static class WriteOption implements Closeable {
 		public static WriteOption wrap(File file) throws IOException {
 			return new WriteOption(file);
@@ -216,16 +223,18 @@ public class XFileEdit {
 
 		public WriteOption(XInterfaceRandomAccessOutputStream randomFileStream, int PieceBufSize) throws IOException {
 			if (PieceBufSize < 1)
-				PieceBufSize = XArrayPieceManager.pieceBufDefaultSize;
+				PieceBufSize = XStream.default_streamByteArrBuffSize;
 			this.randomFileStream = randomFileStream;
 			this.pieceBufSize = PieceBufSize;
 			this.xpm = new XArrayPieceManager(randomFileStream.length(), PieceBufSize);
 			this.length = xpm.length();
 		}
 		public WriteOption(File file) throws FileNotFoundException, IOException {
-			this(new XRandomAccessFileOutputStream(file), XArrayPieceManager.pieceBufDefaultSize);
+			this(new XRandomAccessFileOutputStream(file), XStream.default_streamByteArrBuffSize);
 		}
-
+		public WriteOption(String file) throws FileNotFoundException, IOException {
+			this(new File(file));
+		}
 
 		public void setPieceBytes(long newPiece, byte[] bytes, int boff, int blen) throws IOException {
 			if (newPiece > xpm.getPieceNumber())
@@ -242,8 +251,10 @@ public class XFileEdit {
 				blen = (int)xpm.getPieceLength(newPiece);
 			write(off, bytes, boff, blen);
 		}
+
+
 		public int write(long index, int b) throws IOException {
-			if (!(index < length))
+			if (index >= length)
 				throw new ArrayIndexOutOfBoundsException(String.format("index=%s, filelength=%s", index, length));
 			randomFileStream.seekIndex(index);
 			randomFileStream.write(b);
@@ -264,10 +275,11 @@ public class XFileEdit {
 			randomFileStream.close();
 		}
 
-
-
-
-
+		public void setLength(long length) throws IOException {
+			this.randomFileStream.setLength(length);
+			this.xpm.updatepPieceInfo(length, pieceBufSize);
+			this.length = length;
+		}
 		public long getPieceBuffSize() {
 			return xpm.getPieceBufSize();
 		}
@@ -286,6 +298,9 @@ public class XFileEdit {
 		public long getPieceCount() {
 			return xpm.getPieceNumber();
 		}
+
+
+
 		public long length() {
 			return length;
 		}

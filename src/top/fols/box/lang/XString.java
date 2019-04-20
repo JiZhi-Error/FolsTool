@@ -3,7 +3,7 @@ package top.fols.box.lang;
 import java.util.Arrays;
 import java.util.List;
 import top.fols.box.statics.XStaticBaseType;
-import top.fols.box.util.ArrayListUtils;
+import top.fols.box.util.XArrayList;
 import top.fols.box.util.XArrays;
 import top.fols.box.util.XObjects;
 import top.fols.box.util.XRandom;
@@ -13,7 +13,7 @@ public class XString {
 			return "";
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < length; i++)
-			sb.append(str[XRandom.getRandomInt(0,length - 1)]);
+			sb.append(str[XRandom.getRandomInt(0, str.length - 1)]);
 		return sb.toString();
 	}
 
@@ -55,7 +55,7 @@ public class XString {
 
 	//获取str 出现的位置集合
 	public static List<Integer> indexOfs(String Stringx, String str) {
-		List<Integer> arraylist = new ArrayListUtils<Integer>();
+		List<Integer> arraylist = new XArrayList<Integer>();
 		if (XObjects.isEmpty(Stringx) || XObjects.isEmpty(str))
 			return arraylist;
 		int strlength = str.length();
@@ -104,7 +104,7 @@ public class XString {
 
 
 
-	
+
 	public static String subleft(String str, String string, int off) {
 		return subleft(str, str.indexOf(string, off));
 	}
@@ -140,7 +140,7 @@ public class XString {
 	 split("ab+cd+ef"); >> {"ab","cd",ef"}
 	 */
 	public static List<String> split(String Stringx, String str) {
-        List<String> arraylist = new ArrayListUtils<String>();
+        List<String> arraylist = new XArrayList<String>();
         if (XObjects.isEmpty(Stringx) || XObjects.isEmpty(str) || Stringx.equals(str))
 			return arraylist;
 		if (Stringx.startsWith(str))
@@ -159,12 +159,6 @@ public class XString {
 		}
 		return arraylist;
     }
-
-
-
-
-
-
 
 
 
@@ -194,7 +188,7 @@ public class XString {
 	}
 	public static void fillLeft(char[] str, char fillstr, char newChar[]) {
 		if (newChar.length == str.length) {
-			if(str == newChar)
+			if (str == newChar)
 				return;
 			System.arraycopy(str, 0, newChar, 0, str.length);
 			return;
@@ -226,7 +220,7 @@ public class XString {
 	}
 	public static void fillRight(char[] str, char fillstr, char newChar[]) {
 		if (newChar.length == str.length || (str.length == 0 && newChar.length == 0)) {
-			if(str == newChar)
+			if (str == newChar)
 				return;
 			System.arraycopy(str, 0, newChar, 0, str.length);
 			return;

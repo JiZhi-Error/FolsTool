@@ -26,10 +26,10 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
-import top.fols.box.io.base.ByteArrayOutputStreamUtils;
+import top.fols.box.io.base.ns.XNsByteArrayOutputStream;
 import top.fols.box.statics.XStaticFixedValue;
-import top.fols.box.util.sequence.XSequenceByteUtils;
-import top.fols.box.util.sequence.interfaces.XInterfaceSequenceIOBigByte;
+import top.fols.box.util.interfaces.sequence.byteutil.XInterfaceSequenceByteUtils;
+import top.fols.box.util.interfaces.sequence.byteutil.XInterfaceSequenceBigByteIO;
 
 public class XEncodingDetect {
 	public static final enum EncodingType {
@@ -51,11 +51,7 @@ public class XEncodingDetect {
 		ASCII,
 		OTHER,
 
-		DEAULT
-		;
-
-		static public String DEAULT_ENCODING_NAME = Charset.defaultCharset().name();
-
+		DEAULT;
 		static public String toJavaEncodingName(EncodingType type)
 		{
 			switch(type)
@@ -81,9 +77,9 @@ public class XEncodingDetect {
 
 				case OTHER:return  "ISO8859_1";
 
-				case DEAULT:return DEAULT_ENCODING_NAME;
+				case DEAULT:return XStaticFixedValue.DEFAULT_CHARSET_ENCODING_NAME;
 			}
-			return DEAULT_ENCODING_NAME;
+			return XStaticFixedValue.DEFAULT_CHARSET_ENCODING_NAME;
 		}
 	}
 
@@ -95,11 +91,23 @@ public class XEncodingDetect {
 		return forCharsetName(EncodingType.toJavaEncodingName(new BytesEncodingDetect().detectEncoding(bytes)));
 	}
 
-	public static String getJavaEncode(byte[] bytes) throws IOException {
-		return EncodingType.toJavaEncodingName(new BytesEncodingDetect().detectEncoding(bytes));
+
+
+	public static String getJavaEncode(byte[] bytes) {
+		try {
+			if (XObjects.isEmpty(bytes))
+				return XStaticFixedValue.DEFAULT_CHARSET_ENCODING_NAME;
+			return EncodingType.toJavaEncodingName(new BytesEncodingDetect().detectEncoding(bytes));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
-	public static Charset getJavaEncode2Charset(byte[] bytes) throws IOException {
-		return forCharsetName(EncodingType.toJavaEncodingName(new BytesEncodingDetect().detectEncoding(bytes)));
+	public static Charset getJavaEncode2Charset(byte[] bytes) {
+		try {
+			return forCharsetName(EncodingType.toJavaEncodingName(new BytesEncodingDetect().detectEncoding(bytes)));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static String getJavaEncode(InputStream bytes) throws IOException {
@@ -108,6 +116,9 @@ public class XEncodingDetect {
 	public static Charset getJavaEncode2Charset(InputStream bytes) throws IOException {
 		return forCharsetName(EncodingType.toJavaEncodingName(new BytesEncodingDetect().detectEncoding(bytes)));
 	}
+
+
+
 	private static Charset forCharsetName(String name) {
 		if (name == null)
 			throw new NullPointerException();
@@ -146,9 +157,10 @@ public class XEncodingDetect {
 		 * BIG5, EUC_TW, ASCII, or OTHER) Description: This function looks at the byte array and assigns it a probability score for
 		 * each encoding type. The encoding type with the highest probability is returned.
 		 */
- 		private EncodingType detectEncoding(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+ 		private EncodingType detectEncoding(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			if (rawtext.length() == 0)
 				return EncodingType.DEAULT;
+				
 			final int GB2312 = 0;
 			final int GBK = 1;
 			final int GB18030 = 2;
@@ -225,22 +237,22 @@ public class XEncodingDetect {
 		public EncodingType detectEncoding(File rawtextFile) throws IOException {
 			if (rawtextFile.length() == 0)
 				return EncodingType.DEAULT;
-			byte[] bytes65536 = seekNeedByte(rawtextFile, 65535, 33554432);
-			XInterfaceSequenceIOBigByte rawtext = XSequenceByteUtils.wrapBigByteSequence(bytes65536);
+			byte[] bytes65536 = seekNeedByte(rawtextFile, 65536, 33554432);
+			XInterfaceSequenceBigByteIO rawtext = XInterfaceSequenceByteUtils.wrapBigByteSequence(bytes65536);
 			return detectEncoding(rawtext);
 		}
 		public EncodingType detectEncoding(byte[] rawtextFile) throws IOException {
 			if (rawtextFile.length == 0)
 				return EncodingType.DEAULT;
-			byte[] bytes65536 = seekNeedByte(rawtextFile, 65535, 33554432);
-			XInterfaceSequenceIOBigByte rawtext = XSequenceByteUtils.wrapBigByteSequence(bytes65536);
+			byte[] bytes65536 = seekNeedByte(rawtextFile, 65536, 33554432);
+			XInterfaceSequenceBigByteIO rawtext = XInterfaceSequenceByteUtils.wrapBigByteSequence(bytes65536);
 			return detectEncoding(rawtext);
 		}
 		public EncodingType detectEncoding(InputStream rawtextFile) throws IOException {
 			if (rawtextFile.available() == 0)
 				return EncodingType.DEAULT;
-			byte[] bytes65536 = seekNeedByte(rawtextFile, 65535, 33554432);
-			XInterfaceSequenceIOBigByte rawtext = XSequenceByteUtils.wrapBigByteSequence(bytes65536);
+			byte[] bytes65536 = seekNeedByte(rawtextFile, 65536, 33554432);
+			XInterfaceSequenceBigByteIO rawtext = XInterfaceSequenceByteUtils.wrapBigByteSequence(bytes65536);
 			return detectEncoding(rawtext);
 		}
 
@@ -251,6 +263,10 @@ public class XEncodingDetect {
 		 * 数字：[0x30,0x39]（或十进制[48, 57]）
 		 * 小写字母：[0x61,0x7a]（或十进制[97, 122]）
 		 * 大写字母：[0x41,0x5a]（或十进制[65, 90]）
+
+		 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+		 byte 33-126;
+
 		 */
 		private byte[] seekNeedByte(File f, int length, long maxForLength) throws IOException {
 			FileInputStream input = new FileInputStream(f);
@@ -265,7 +281,7 @@ public class XEncodingDetect {
 			byte[] test = new byte[length];
 			int read = -1;
 			long startIndex = 0;
-			ByteArrayOutputStreamUtils out = new ByteArrayOutputStreamUtils();
+			XNsByteArrayOutputStream out = new XNsByteArrayOutputStream();
 			while ((read = input.read(test)) != -1) {
 				for (int i = 0;i < read;i++) {
 					byte b = test[i];
@@ -309,11 +325,22 @@ public class XEncodingDetect {
 		}
 
 
+
+
+
+
+
+
+
+
+
+
+
 		/*
 		 * Function: gb2312_probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text
 		 * in array uses GB-2312 encoding
 		 */
-		int gb2312_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int gb2312_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i;
 			long rawtextlen = 0;
 			long dbchars = 1, gbchars = 1;
@@ -353,7 +380,7 @@ public class XEncodingDetect {
 		 * Function: gbk_probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text in
 		 * array uses GBK encoding
 		 */
-		int gbk_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int gbk_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, gbchars = 1;
 			long gbfreq = 0, totalfreq = 1;
@@ -409,7 +436,7 @@ public class XEncodingDetect {
 		 * Function: gb18030_probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text
 		 * in array uses GBK encoding
 		 */
-		int gb18030_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int gb18030_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, gbchars = 1;
 			long gbfreq = 0, totalfreq = 1;
@@ -477,7 +504,7 @@ public class XEncodingDetect {
 		 * Function: hz_probability Argument: byte array Returns : number from 0 to 100 representing probability text in array uses HZ
 		 * encoding
 		 */
-		int hz_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int hz_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen;
 			long hzchars = 0, dbchars = 1;
 			long hzfreq = 0, totalfreq = 1;
@@ -546,7 +573,7 @@ public class XEncodingDetect {
 		 * Function: big5_probability Argument: byte array Returns : number from 0 to 100 representing probability text in array uses
 		 * Big5 encoding
 		 */
-		int big5_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int big5_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, bfchars = 1;
 			float rangeval = 0, freqval = 0;
@@ -588,7 +615,7 @@ public class XEncodingDetect {
 		 * Function: big5plus_probability Argument: pointer to unsigned char array Returns : number from 0 to 100 representing
 		 * probability text in array uses Big5+ encoding
 		 */
-		int big5plus_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int big5plus_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, bfchars = 1;
 			long bffreq = 0, totalfreq = 1;
@@ -646,7 +673,7 @@ public class XEncodingDetect {
 		 * Function: euc_tw_probability Argument: byte array Returns : number from 0 to 100 representing probability text in array
 		 * uses EUC-TW (CNS 11643) encoding
 		 */
-		int euc_tw_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int euc_tw_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, cnschars = 1;
 			long cnsfreq = 0, totalfreq = 1;
@@ -691,7 +718,7 @@ public class XEncodingDetect {
 		 * Function: iso_2022_cn_probability Argument: byte array Returns : number from 0 to 100 representing probability text in
 		 * array uses ISO 2022-CN encoding WORKS FOR BASIC CASES, BUT STILL NEEDS MORE WORK
 		 */
-		int iso_2022_cn_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int iso_2022_cn_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, isochars = 1;
 			long isofreq = 0, totalfreq = 1;
@@ -761,7 +788,7 @@ public class XEncodingDetect {
 		 * Function: utf8_probability Argument: byte array Returns : number from 0 to 100 representing probability text in array uses
 		 * UTF-8 encoding of Unicode
 		 */
-		int utf8_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int utf8_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			int score = 0;
 			long i, rawtextlen = 0;
 			long goodbytes = 0, asciibytes = 0;
@@ -805,7 +832,7 @@ public class XEncodingDetect {
 		 * Function: utf16_probability Argument: byte array Returns : number from 0 to 100 representing probability text in array uses
 		 * UTF-16 encoding of Unicode, guess based on BOM // NOT VERY GENERAL, NEEDS MUCH MORE WORK
 		 */
-		int utf16_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int utf16_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			if (rawtext.length() > 1 && ((byte) 0xFE == rawtext.byteAt(0) && (byte) 0xFF == rawtext.byteAt(1)) || // Big-endian
 				((byte) 0xFF == rawtext.byteAt(0) && (byte) 0xFE == rawtext.byteAt(1))) { // Little-endian
 				return 100;
@@ -828,7 +855,7 @@ public class XEncodingDetect {
 		 * Function: ascii_probability Argument: byte array Returns : number from 0 to 100 representing probability text in array uses
 		 * all ASCII Description: Sees if array has any characters not in ASCII range, if so, score is reduced
 		 */
-		int ascii_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int ascii_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			int score = 75;
 			long i, rawtextlen;
 			rawtextlen = rawtext.length();
@@ -849,7 +876,7 @@ public class XEncodingDetect {
 		 * Function: euc_kr__probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text
 		 * in array uses EUC-KR encoding
 		 */
-		int euc_kr_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int euc_kr_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, krchars = 1;
 			long krfreq = 0, totalfreq = 1;
@@ -887,7 +914,7 @@ public class XEncodingDetect {
 		 * Function: cp949__probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text
 		 * in array uses Cp949 encoding
 		 */
-		int cp949_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int cp949_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, krchars = 1;
 			long krfreq = 0, totalfreq = 1;
@@ -924,7 +951,7 @@ public class XEncodingDetect {
 			return (int) (rangeval + freqval);
 		}
 
-		int iso_2022_kr_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int iso_2022_kr_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i;
 			for (i = 0; i < rawtext.length(); i++) {
 				if (i + 3 < rawtext.length() && rawtext.byteAt(i) == 0x1b && (char) rawtext.byteAt(i + 1) == '$' && (char) rawtext.byteAt(i + 2) == ')'
@@ -939,7 +966,7 @@ public class XEncodingDetect {
 		 * Function: euc_jp_probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text
 		 * in array uses EUC-JP encoding
 		 */
-		int euc_jp_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int euc_jp_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, jpchars = 1;
 			long jpfreq = 0, totalfreq = 1;
@@ -973,7 +1000,7 @@ public class XEncodingDetect {
 			return (int) (rangeval + freqval);
 		}
 
-		int iso_2022_jp_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int iso_2022_jp_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i;
 			for (i = 0; i < rawtext.length(); i++) {
 				if (i + 2 < rawtext.length() && rawtext.byteAt(i) == 0x1b && (char) rawtext.byteAt(i + 1) == '$' && (char) rawtext.byteAt(i + 2) == 'B') {
@@ -987,7 +1014,7 @@ public class XEncodingDetect {
 		 * Function: sjis_probability Argument: pointer to byte array Returns : number from 0 to 100 representing probability text in
 		 * array uses Shift-JIS encoding
 		 */
-		int sjis_probability(XInterfaceSequenceIOBigByte rawtext) throws IOException {
+		int sjis_probability(XInterfaceSequenceBigByteIO rawtext) throws IOException {
 			long i, rawtextlen = 0;
 			long dbchars = 1, jpchars = 1;
 			long jpfreq = 0, totalfreq = 1;
