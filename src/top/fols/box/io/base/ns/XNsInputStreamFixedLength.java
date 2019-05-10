@@ -2,17 +2,19 @@ package top.fols.box.io.base.ns;
 
 import java.io.IOException;
 import java.io.InputStream;
-import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
+import top.fols.box.io.interfaces.XInterfaceFixedLengthStream;
+import top.fols.box.io.interfaces.XInterfaceGetOriginStream;
 /**
  * constraint inputStream max read Size
  **/
-public class XNsInputStreamFixedLength extends InputStream implements XInterfaceStreamFixedLength<InputStream> {
-	private InputStream stream;
+
+public class XNsInputStreamFixedLength<T extends InputStream> extends InputStream implements XInterfaceFixedLengthStream,XInterfaceGetOriginStream<T> {
+	private T stream;
 	private long maxCount;
 	private long nowCount;
 	private boolean fixed;
-	public XNsInputStreamFixedLength(InputStream stream, long maxCount) {
-		if (stream == null)
+	public XNsInputStreamFixedLength(T stream, long maxCount) {
+		if (null == stream)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
 			maxCount = 0;
@@ -22,7 +24,7 @@ public class XNsInputStreamFixedLength extends InputStream implements XInterface
 		this.fixed = true;
 	}
 
-
+	@Override
 	public int read() throws IOException {
 		if (fixed && nowCount + 1 > maxCount)
 			return -1;
@@ -31,6 +33,7 @@ public class XNsInputStreamFixedLength extends InputStream implements XInterface
 			nowCount++;			
 		return read;
 	}
+	@Override
     public int read(byte[] b, int off, int len) throws java.io.IOException {
 		if (len < 0)
 			return -1;
@@ -51,57 +54,71 @@ public class XNsInputStreamFixedLength extends InputStream implements XInterface
 
 
 
+	@Override
     public long skip(long n) throws java.io.IOException {
 		return stream.skip(n);
 	}
+	@Override
     public int available() throws java.io.IOException {
 		return stream.available();
 	}
+	@Override
     public void reset() throws java.io.IOException {
 		stream.reset();
 	}
+	@Override
     public boolean markSupported() {
 		return stream.markSupported();
 	}
+	@Override
 	public void close() throws java.io.IOException {
 		stream.close();
 	}
+	@Override
     public void mark(int readlimit) {
 		stream.mark(readlimit);
 	}
 
-	public long getFixedLengthFree() {
+	@Override
+	public long getFreeLength() {
 		return maxCount - nowCount;
 	}
-	public boolean isFixedLengthAvailable() {
+	@Override
+	public boolean isAvailable() {
 		return !fixed || fixed && nowCount < maxCount;
 	}
 
-	public long getFixedLengthUseSize() {
+	@Override
+	public long getUseLength() {
 		return nowCount;
 	}
-	public void resetFixedLengthUseSize() {
+	@Override
+	public void resetUseLength() {
 		nowCount = 0;
 	}
 
-	public long getFixedLengthMaxSize() {
+	@Override
+	public long getMaxUseLength() {
 		return maxCount;
 	}
-	public void setFixedLengthMaxSize(long maxCount) {
+	@Override
+	public void setMaxUseLength(long maxCount) {
 		this.maxCount = maxCount;
 	}
 
-
-	public void setFixedLength(boolean b) {
+	@Override
+	public void fixed(boolean b) {
 		this.fixed = b;
 	}
-	public boolean getFixedLength() {
+	@Override
+	public boolean isFixed() {
 		return fixed;
 	}
 
 
 
-	public InputStream getStream() {
+	@Override
+	public T getStream() {
 		return stream;
 	}
 }

@@ -2,20 +2,22 @@ package top.fols.box.io.base.ns;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import top.fols.box.io.interfaces.XInterfaceStreamFixedLength;
+import top.fols.box.io.interfaces.XInterfaceFixedLengthStream;
+import top.fols.box.io.interfaces.XInterfaceGetOriginStream;
 
-/**
+/*
  @java.io.OutputStream
  Constraint OutputStream Max Write Size
  限制输出流最大写入大小
- **/
-public class XNsOutputStreamFixedLength extends OutputStream implements XInterfaceStreamFixedLength<OutputStream> {
-	private OutputStream stream;
+ */
+
+public class XNsOutputStreamFixedLength<T extends OutputStream> extends OutputStream implements XInterfaceFixedLengthStream,XInterfaceGetOriginStream<T> {
+	private T stream;
 	protected long maxCount;
 	protected long nowCount;
 	protected boolean fixed;
-	public XNsOutputStreamFixedLength(OutputStream stream, long maxCount) {
-		if (stream == null)
+	public XNsOutputStreamFixedLength(T stream, long maxCount) {
+		if (null == stream)
 			throw new NullPointerException("stream for null");
 		if (maxCount < 0)
 			maxCount = 0;
@@ -26,6 +28,7 @@ public class XNsOutputStreamFixedLength extends OutputStream implements XInterfa
 	}
 
 	// 写入一个字节b到“字节数组输出流”中，并将计数+1  
+	@Override
 	public void write(int b) throws IOException {  
 		if (fixed && nowCount + 1 > maxCount)
 			return;
@@ -33,6 +36,7 @@ public class XNsOutputStreamFixedLength extends OutputStream implements XInterfa
 		nowCount++;
 	}  
 	// 写入字节数组b到“字节数组输出流”中。off是“写入字节数组b的起始位置”，len是写入的长度  
+	@Override
 	public  void write(byte b[], int off, int len) throws IOException {
 		if (len < 0)
 			return;
@@ -48,45 +52,56 @@ public class XNsOutputStreamFixedLength extends OutputStream implements XInterfa
 		stream.write(b, off, len);
 		nowCount += len;
 	}  
+	@Override
 	public void close() throws IOException {
 		stream.close();
 	}
+	@Override
 	public void flush() throws IOException {
 		stream.flush();
 	}
 
 
 
-	public long getFixedLengthFree() {
+	@Override
+	public long getFreeLength() {
 		return maxCount - nowCount;
 	}
-	public boolean isFixedLengthAvailable() {
+	@Override
+	public boolean isAvailable() {
 		return !fixed || fixed && nowCount < maxCount;
 	}
 
-	public long getFixedLengthUseSize() {
+	@Override
+	public long getUseLength() {
 		return nowCount;
 	}
-	public void resetFixedLengthUseSize() {
+	@Override
+	public void resetUseLength() {
 		nowCount = 0;
 	}
 
-	public long getFixedLengthMaxSize() {
+	@Override
+	public long getMaxUseLength() {
 		return maxCount;
 	}
-	public void setFixedLengthMaxSize(long maxCount) {
+	@Override
+	public void setMaxUseLength(long maxCount) {
 		this.maxCount = maxCount;
 	}
 
-	public void setFixedLength(boolean b) {
+	@Override
+	public void fixed(boolean b) {
 		this.fixed = b;
 	}
-	public boolean getFixedLength() {
+	@Override
+	public boolean isFixed() {
 		return fixed;
 	}
 
 
-	public OutputStream getStream() {
+	@Override
+	public T getStream() {
 		return stream;
 	}
 

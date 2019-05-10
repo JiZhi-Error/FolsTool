@@ -6,35 +6,62 @@ import java.io.OutputStream;
 import top.fols.box.annotation.XAnnotations;
 import top.fols.box.statics.XStaticFixedValue;
 import top.fols.box.util.XObjects;
+import top.fols.box.io.interfaces.XInterfaceGetOriginStream;
+import top.fols.box.io.interfaces.XInterfaceGetOriginStream;
+import top.fols.box.io.interfaces.XInterfereReleaseBufferable;
+
 public class XHexStream {
+	public static String encode2String(byte[] src) {
+		return new String(encode(src));
+	}
+	public static byte[] encode(byte[] src) {
+		return encode(src, 0, src.length);
+	}
+	public static byte[] encode(byte[] cbuffered, int off, int len) {
+		EncoderBuffer encoder = new EncoderBuffer();
+		byte[] bytes = encoder.encode(cbuffered, off, len);
+		return bytes;
+	}
+
+	public static byte[] decode(String src) {
+		return decode(src.getBytes());
+	}
+	public static byte[] decode(byte[] src) {
+		return decode(src, 0, src.length);
+	}
+	public static byte[] decode(byte[] cbuffered, int off, int len) {
+		DecoderBuffer decoder = new DecoderBuffer();
+		byte[] bytes = decoder.decode(cbuffered, off, len);
+		return bytes;
+	}
+
+	
 	public static class EncoderBuffer {
 		public static final byte[] HEX_CHAR_BYTES_LOWERCASE = new byte[]{'0', '1', '2', '3', '4', '5','6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 		public static final byte[] HEX_CHAR_BYTES_UPPERCASE = new byte[]{'0', '1', '2', '3', '4', '5','6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 		private final byte[] HEX_CHAR;
-		private final byte[] one = new byte[2];
 		public byte[] encode(byte b) {
 			int a;
 			if (b < 0) 
 				a = 256 + b;
 			else 
 				a = b;
+			byte[] one = new byte[2];
 			one[0] = HEX_CHAR[a / 16];
 			one[1] = HEX_CHAR[a % 16];
-			return bytes;
+			return one;
 		}
 		public String encode2String(byte[] src) {
 			return new String(encode(src));
 		}
 		public byte[] encode(byte[] src) {
 			return encode(src, 0, src.length);
-		}
-		private byte[] bytes = XStaticFixedValue.nullbyteArray;;
+		} 
 		public byte[] encode(byte[] cbuffered, int off, int len) {
 			if (len < 1 || off + len > cbuffered.length)
-				return XStaticFixedValue.nullbyteArray;
-			if (bytes.length != len * 2)
-				bytes = new byte[len * 2];
+				throw new ArrayIndexOutOfBoundsException();
+			byte[] bytes = new byte[len * 2];
 			int forlength = len;
 			int index = 0;
 			for (int i = 0;i < forlength;i++) {
@@ -49,9 +76,7 @@ public class XHexStream {
 			}
 			return bytes;
 		}
-		public void clearBuffer() {
-			bytes = XStaticFixedValue.nullbyteArray;
-		}
+
 
 		public EncoderBuffer() {
 			this(false);
@@ -60,6 +85,7 @@ public class XHexStream {
 			HEX_CHAR = toUpperCase ?HEX_CHAR_BYTES_UPPERCASE: HEX_CHAR_BYTES_LOWERCASE;
 		}
 	}
+	
 	public static class DecoderBuffer {
 		public byte[] decode(String src) {
 			return decode(src.getBytes());
@@ -67,12 +93,10 @@ public class XHexStream {
 		public byte[] decode(byte[] src) {
 			return decode(src, 0, src.length);
 		}
-		private byte[] b = XStaticFixedValue.nullbyteArray;
 		public byte[] decode(byte[] cbuffered, int off, int len) {
 			if (len < 1 || off + len > cbuffered.length)
-				return XStaticFixedValue.nullbyteArray;
-			if (b.length != len / 2)
-				b = new byte[len / 2];
+				throw new ArrayIndexOutOfBoundsException();
+			byte[] b = new byte[len / 2];
 			int forlength = b.length;
 			int Pos;
 			for (int i = 0; i < forlength; i++) {  
@@ -99,53 +123,24 @@ public class XHexStream {
 			}  
 			return b;
 		}
-		public void clearBuffer() {
-			b = XStaticFixedValue.nullbyteArray;
-		}
-	}
-
-	private static EncoderBuffer encoder;
-	public static String encode2String(byte[] src) {
-		return new String(encode(src));
-	}
-	public static byte[] encode(byte[] src) {
-		return encode(src, 0, src.length);
-	}
-	public static synchronized byte[] encode(byte[] cbuffered, int off, int len) {
-		if (encoder == null)
-			encoder = new EncoderBuffer();
-		byte[] bytes = encoder.encode(cbuffered, off, len);
-		encoder.clearBuffer();
-		return bytes;
-	}
-
-	private static DecoderBuffer decoder;
-	public static byte[] decode(String src) {
-		return decode(src.getBytes());
-	}
-	public static byte[] decode(byte[] src) {
-		return decode(src, 0, src.length);
-	}
-	public static synchronized byte[] decode(byte[] cbuffered, int off, int len) {
-		if (decoder == null)
-			decoder = new DecoderBuffer();
-		byte[] bytes = decoder.decode(cbuffered, off, len);
-		decoder.clearBuffer();
-		return bytes;
 	}
 
 
-
-
-
+	
+	
+	
+	
+	
+	
+	
 	@XAnnotations("from byte array cast to hex write OutputStream")
-	public static class EncOutputStream extends OutputStream {
-		private final OutputStream stream;
+	public static class EncOutputStream<T extends OutputStream> extends OutputStream implements XInterfaceGetOriginStream<T>, XInterfereReleaseBufferable{
+		private final T stream;
 		private final byte[] HEX_CHAR;
-		public EncOutputStream(OutputStream hexwriter) {
+		public EncOutputStream(T hexwriter) {
 			this(hexwriter, false);
 		}
-		public EncOutputStream(OutputStream hexWrite, boolean toUpperCase) {
+		public EncOutputStream(T hexWrite, boolean toUpperCase) {
 			this.stream = XObjects.requireNonNull(hexWrite);
 			this.HEX_CHAR = HEX_CHAR = toUpperCase ?EncoderBuffer.HEX_CHAR_BYTES_UPPERCASE : EncoderBuffer.HEX_CHAR_BYTES_LOWERCASE;;
 		}
@@ -179,28 +174,38 @@ public class XHexStream {
 			stream.write(cbuffered);
 		}
 		@XAnnotations("write 2 char    = 2byte")
+		@Override
 		public void write(int p1) throws java.io.IOException {
 			write0((byte)p1);
 		}
+		@Override
 		public void write(byte[] b) throws java.io.IOException {
 			write0(b, 0, b.length);
 		}
 		@XAnnotations("write len*2 char    =len*2byte")
+		@Override
 		public void write(byte[] b, int off, int len) throws java.io.IOException {
 			write0(b, off, len);
 		}
+		@Override
 		public void flush() throws java.io.IOException {
 			stream.flush();
 		}
+		@Override
 		public void close() throws java.io.IOException {
 			stream.close();
 		}
 
-		public void clearBuffer() {
+		@Override
+		public void releaseBuffer() {
+			// TODO: Implement this method
 			cbuffered = XStaticFixedValue.nullbyteArray;
 		}
 
-		public OutputStream getStream() {
+
+		
+		@Override
+		public T getStream() {
 			return stream;
 		}
 	}
@@ -208,14 +213,15 @@ public class XHexStream {
 
 
 	@XAnnotations("from InputStream read hex cast to byte array")
-	public static class DecInputStream extends InputStream {
+	public static class DecInputStream<T extends InputStream> extends InputStream implements XInterfaceGetOriginStream<T>,XInterfereReleaseBufferable{
 		//private static final String hexString = "0123456789abcdef";
-		private final InputStream stream;
-		public DecInputStream(InputStream hexReader) {
+		private final T stream;
+		public DecInputStream(T hexReader) {
 			this.stream = XObjects.requireNonNull(hexReader);
 		}
 		private byte[] oneHex = new byte[2];
 		@XAnnotations("read 2 byte")
+		@Override
 		public int read() throws IOException {
 			int read = stream.read(oneHex);
 			if (read != 2)
@@ -241,11 +247,13 @@ public class XHexStream {
 
 			//return (byte)(hexString.indexOf(oneHex[0])) << 4 | (byte)(hexString.indexOf(oneHex[1]));
 		}
+		@Override
 		public int read(byte[] b) throws java.io.IOException {
 			return read(b, 0, b.length);
 		} 
 		private byte[] cbuffered = new byte[0];
 		@XAnnotations("read len*2 byte")
+		@Override
 		public int read(byte[] b, int off, int len) throws java.io.IOException {
 			if (cbuffered.length != len * 2)
 				cbuffered = new byte[len * 2];
@@ -279,35 +287,46 @@ public class XHexStream {
 			return forlength;
 		}
 		@XAnnotations("skip n*2")
+		@Override
 		public long skip(long n) throws java.io.IOException {
 			long skip =  stream.skip(n * 2);//一个 hex 长度为2字节
 			skip = skip > 0 ?skip / 2: 0;
 			return skip;
 		}
+		@Override
 		public void close() throws java.io.IOException {
 			stream.close();
 			stream.close();
 		}
 		@XAnnotations("get available/2")
+		@Override
 		public int available() throws IOException {
 			int available = stream.available();
 			available = available > 0 ?available / 2: 0;
 			return available;
 		}
 		@XAnnotations("mark readlimit*2")
+		@Override
 		public synchronized void mark(int readlimit) {
 			stream.mark(readlimit * 2);
 		}
+		@Override
 		public synchronized void reset() throws java.io.IOException {
 			stream.reset();
 		}
+		@Override
 		public boolean markSupported() {
 			return stream.markSupported();
 		}
-		public void clearBuffer() {
+		
+		@Override
+		public void releaseBuffer() {
+			// TODO: Implement this method
 			cbuffered = XStaticFixedValue.nullbyteArray;
 		}
-		public InputStream getStream() {
+		
+		@Override
+		public T getStream() {
 			return stream;
 		}
 	}

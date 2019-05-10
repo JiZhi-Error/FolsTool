@@ -1,27 +1,25 @@
 package top.fols.box.util;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-public class XMapKeyCheck {
-	public XMapKeyCheck(Object[] array) {
+public class XMapKeyCheck <E extends Object> {
+	public XMapKeyCheck(E[] array) {
 		putAll(array);
+		array = null;
 	}
-	public XMapKeyCheck(Object array) {
-		if (XObjects.requireArray(array) == null)
-			return;
-		putAll(array.getClass() == Object[].class ?(Object[])array: XObjects.toObjectArray(array));
-	}
-	public XMapKeyCheck(Map map) {
+	public XMapKeyCheck(Map<E,?> map) {
 		Set set = map.keySet();
-		for (Object i:set)
-			Hash.put(i, nullvalue);
+		for (E i:set)
+			Hash.put(i, null);
 	}
 	public XMapKeyCheck() {
+		super();
 	}
-
-
-	private Map Hash = new HashMapUtils9<>();
-	private Object nullvalue = new Object();
-	public boolean contains(Object o) {
+	
+	public Map<E,?> map(){ return Hash; }
+	
+	private Map<E,?> Hash = new HashMap<>();
+	public boolean contains(E o) {
 		return Hash.containsKey(o);
 	}
 	public void clear() {
@@ -30,19 +28,20 @@ public class XMapKeyCheck {
 	public int size() {
 		return Hash.size();
 	}
-	public void put(Object Key) {
-		Hash.put(Key, nullvalue);
+	public void put(E Key) {
+		Hash.put(Key, null);
 	}
-	public void putAll(Object... array) {
-		if (array == null)
+	public void putAll(E... array) {
+		if (null == array)
 			return;
-		for (Object Key:array)
-			Hash.put(Key, nullvalue);
+		for (E Key:array)
+			Hash.put(Key, null);
 	}
-	public void putAll(Map map) {
-		if (map == null)
+	public void putAll(Map<E,?> map) {
+		if (null == map)
 			return;
-		Hash.putAll(map);
+		for (E k:Hash.keySet())
+			Hash.put(k, null);
 	}
 	public Set keySet() {
 		return Hash.keySet();
@@ -50,19 +49,25 @@ public class XMapKeyCheck {
 
 
 
-	public boolean containsAll(Object... obj) {
-		for (Object i:obj)
+	public boolean containsAll(E... obj) {
+		for (E i:obj)
 			if (!Hash.containsKey(i))
 				return false;
 		return true;
 	}
 
 
-	public void remove(Object key) {
+	public void remove(E key) {
 		Hash.remove(key);
 	}
-	public void removeAll(Object... obj) {
-		for (Object i:obj)
+	public void removeAll(E... obj) {
+		for (E i:obj)
 			Hash.remove(i);
+	}
+
+	@Override
+	public String toString() {
+		// TODO: Implement this method
+		return Hash.toString();
 	}
 }

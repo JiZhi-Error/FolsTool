@@ -15,7 +15,7 @@ static void initialize_frequencies()
 	
 	synchronized(sync)
 	{
-		if (!(GB_ == null || GB_ == null || Big5_ == null || Big5P_ == null || EUC_TW_ == null || KR_ == null || JP_ == null))
+		if (!(null == GB_ || null == GB_ || null == Big5_ || null == Big5P_ || null == EUC_TW_ || null == KR_ || null == JP_))
 		{
 // Initialize the Frequency Table for GB, GBK, Big5, EUC-TW, KR, JP
 			return;

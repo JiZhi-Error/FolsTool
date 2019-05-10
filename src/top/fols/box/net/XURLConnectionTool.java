@@ -7,28 +7,22 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import top.fols.box.io.XStream;
-import top.fols.box.io.base.ByteArrayOutputStreamUtils;
-import top.fols.box.io.base.XInputStreamFixedLength;
-import top.fols.box.io.base.ns.XNsCharArrayReaderUtils;
+import top.fols.box.io.base.ns.XNsByteArrayOutputStream;
+import top.fols.box.io.base.ns.XNsCharArrayReader;
+import top.fols.box.io.base.ns.XNsInputStreamFixedLength;
 import top.fols.box.statics.XStaticFixedValue;
-import top.fols.box.util.XArraysUtils;
-import top.fols.box.util.XMap;
+import top.fols.box.util.XArrays;
 import top.fols.box.util.XObjects;
 
 public class XURLConnectionTool {
 	public static class UA {
-		/*
-		 设置请求头
-
-		 直接可以使用
-		 Content-xxx:xxxxx
-		 Cookie:xxxxx
-		 */
 		private static char[] trim(char[] b) {
-			if (b == null)
+			if (null == b)
 				return b;
 			try {
 				int start = 0;
@@ -54,37 +48,44 @@ public class XURLConnectionTool {
 				return b;
 			}
 		}
+		/*
+		 * deal multi line
+		 */
 		private static void deal(String ua, UA m) {
-			XNsCharArrayReaderUtils rowStreanm = new XNsCharArrayReaderUtils(ua.toCharArray());
+			XNsCharArrayReader rowStreanm = new XNsCharArrayReader(ua.toCharArray());
 			char byteArray[];
 			char splitchar = ':';
-			while ((byteArray = rowStreanm.readLine()) != null) {
-				int splistCharindex = XArraysUtils.indexOf(byteArray, splitchar, 0, byteArray.length);
+			while (null != (byteArray = rowStreanm.readLine())) {
+				int splistCharindex = XArrays.indexOf(byteArray, splitchar, 0, byteArray.length);
 				String trim1 = null,trim2 = null;
 				if (splistCharindex != -1) {
 					trim1 = new String(byteArray, 0, splistCharindex);
 					splistCharindex++;
 					trim2 = new String(trim(Arrays.copyOfRange(byteArray, splistCharindex, byteArray.length)));
 					if (!trim1.equals(""))
-						m.Key.put(trim1, trim2);
+						m.uaMap.put(trim1, trim2);
 				}
+
 				byteArray = null;
 			}
 		}
-		private XMap<String> Key = new XMap<String>();
+		private Map<String,String> uaMap = new HashMap<String,String>();
 		public UA() {
 			this(null);
 		}
 		public UA(String ua) {
-			if (ua != null)
+			if (null != ua)
 				putAll(ua);
 		}
 		public UA put(String k, String v) {
-			if (k == null)
+			if (null == k)
 				throw new NullPointerException();
-			this.Key.put(k, v);
+			this.uaMap.put(k, v);
 			return this;
 		}
+		/*
+		 * deal multi line able
+		 */
 		public UA putAll(String Content) {
 			deal(Content, this);
 			return this;
@@ -94,33 +95,33 @@ public class XURLConnectionTool {
 			for (String s:Content)
 				buf.append(s).append(XStaticFixedValue.String_NextLineN);
 			putAll(buf.toString());
-			buf.delete(0, buf.length());
+			buf = null;
 			return this;
 		}
 		public String get(String k) {
-			if (k == null)
+			if (null == k)
 				throw new NullPointerException();
-			return Key.get(k);
+			return uaMap.get(k);
 		}
-		public XMap<String> getAll() {
-			return Key;
+		public Map<String,String> getAll() {
+			return uaMap;
 		}
 		public List<String> keys() {
-			return Key.keys();
+			return XObjects.keys(uaMap);
 		}
 
 		public UA reset() {
-			Key.clear();
+			uaMap.clear();
 			return this;
 		}
 		public UA remove(String key) {
-			Key.remove(key);
+			uaMap.remove(key);
 			return this;
 		}
 		@Override
 		public String toString() {
 			// TODO: Implement this method
-			StringBuffer buf = new StringBuffer();
+			StringBuilder buf = new StringBuilder();
 			for (String k:keys()) {
 				buf.append(k).append(':').append(' ').append(get(k)).append("\r\n");
 			}
@@ -129,19 +130,18 @@ public class XURLConnectionTool {
 
 
 
-
 		public void setToURLConnection(URLConnection con) {
-			Iterator<String> it = Key.keySet().iterator();
+			Iterator<String> it = uaMap.keySet().iterator();
 			while (it.hasNext()) {
 				String k = it.next();
-				con.setRequestProperty(k, Key.get(k));
+				con.setRequestProperty(k, uaMap.get(k));
 			}
 		}
 		public void addToURLConnection(URLConnection con) {
-			Iterator<String> it = Key.keySet().iterator();
+			Iterator<String> it = uaMap.keySet().iterator();
 			while (it.hasNext()) {
 				String k = it.next();
-				con.addRequestProperty(k, Key.get(k));
+				con.addRequestProperty(k, uaMap.get(k));
 			}
 		}
 	}
@@ -153,7 +153,10 @@ public class XURLConnectionTool {
 	public static class get {
 		private URLConnection con;
 		private UA ua;
-
+		private InputStream in;
+		private OutputStream ot;
+		private boolean writeORread = false;
+		
 		public get(String url) throws IOException {
 			this(new URL(url).openConnection());
 		}
@@ -176,7 +179,7 @@ public class XURLConnectionTool {
 			return ua(new UA(Content));
 		}
 		public get ua(UA a) {
-			if (a == null)
+			if (null == a)
 				return this;
 			this.ua = a;
 			return this;
@@ -185,14 +188,13 @@ public class XURLConnectionTool {
 			return ua;
 		}
 
-		private InputStream in;
-		private OutputStream ot;
+		
 		public InputStream getInputStream() throws IOException {
-			return in == null ? in = con.getInputStream(): in;
+			return null == in ? in = con.getInputStream(): in;
 
 		}
 		public OutputStream getOutputStream() throws IOException {
-			return ot == null ? ot = con.getOutputStream(): ot;
+			return null == ot ? ot = con.getOutputStream(): ot;
 		}
 
 
@@ -209,9 +211,8 @@ public class XURLConnectionTool {
 			}
 		}
 
-		private boolean writeORread = false;
 		public get read2(OutputStream BackOutput) throws IOException {
-			if (BackOutput == null)
+			if (null == BackOutput)
 				return this;
 			if (!writeORread) {
 				ua.setToURLConnection(con);
@@ -226,12 +227,23 @@ public class XURLConnectionTool {
 			return toString(null);
 		}
 		public String toString(String encoding) {
-			ByteArrayOutputStreamUtils BackOutput = new ByteArrayOutputStreamUtils();
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
 			try {
 				read2(BackOutput);
-				if (encoding == null)
+				if (null == encoding)
 					return BackOutput.toString();
 				return BackOutput.toString(encoding);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		public byte[] toBytes() {
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
+			try {
+				read2(BackOutput);
+				byte[] bs = BackOutput.toByteArray();
+				BackOutput.releaseBuffer();
+				return bs;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -241,7 +253,11 @@ public class XURLConnectionTool {
 	public static class post {
 		private URLConnection con;
 		private UA ua;
-
+		private InputStream in;
+		private OutputStream ot;
+		private boolean writeORread = false;
+		
+		
 		public post(String url) throws IOException {
 			this(new URL(url).openConnection());
 		}
@@ -272,7 +288,7 @@ public class XURLConnectionTool {
 			return ua(new UA(Content));
 		}
 		public post ua(UA a) {
-			if (a == null)
+			if (null == a)
 				return this;
 			this.ua = a;
 			return this;
@@ -281,19 +297,13 @@ public class XURLConnectionTool {
 			return ua;
 		}
 
-		private InputStream in;
-		private OutputStream ot;
 		public InputStream getInputStream() throws IOException {
-			return in == null ? in = con.getInputStream(): in;
+			return null == in ? in = con.getInputStream(): in;
 
 		}
 		public OutputStream getOutputStream() throws IOException {
-			return ot == null ? ot = con.getOutputStream(): ot;
+			return null == ot ? ot = con.getOutputStream(): ot;
 		}
-
-
-
-		private boolean writeORread = false;
 		public post write(byte[] b) throws IOException {
 			return write(b, 0, b.length);
 		}
@@ -308,7 +318,7 @@ public class XURLConnectionTool {
 			return this;
 		}
 		public post write(InputStream BackOutput) throws IOException {
-			if (BackOutput == null)
+			if (null == BackOutput)
 				return this;
 			if (!writeORread) {
 				ua.setToURLConnection(con);
@@ -318,13 +328,13 @@ public class XURLConnectionTool {
 			return this;
 		}
 		public post write(InputStream BackOutput, long length) throws IOException {
-			if (BackOutput == null)
+			if (null == BackOutput)
 				return this;
 			if (!writeORread) {
 				ua.setToURLConnection(con);
 				writeORread = true;
 			}
-			XStream.copy(new XInputStreamFixedLength(BackOutput, length), getOutputStream());
+			XStream.copy(new XNsInputStreamFixedLength(BackOutput, length), getOutputStream());
 			return this;
 		}
 		public void disconnect() {
@@ -340,7 +350,7 @@ public class XURLConnectionTool {
 			}
 		}
 		public post read2(OutputStream BackOutput) throws IOException {
-			if (BackOutput == null)
+			if (null == BackOutput)
 				return this;
 			if (!writeORread) {
 				ua.setToURLConnection(con);
@@ -357,16 +367,29 @@ public class XURLConnectionTool {
 			return toString(null);
 		}
 		public String toString(String encoding) {
-			ByteArrayOutputStreamUtils BackOutput = new ByteArrayOutputStreamUtils();
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
 			try {
 				read2(BackOutput);
-				if (encoding == null)
+				if (null == encoding)
 					return BackOutput.toString();
 				return BackOutput.toString(encoding);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
+
+		public byte[] toBytes() {
+			XNsByteArrayOutputStream BackOutput = new XNsByteArrayOutputStream();
+			try {
+				read2(BackOutput);
+				byte[] bs = BackOutput.toByteArray();
+				BackOutput.releaseBuffer();
+				return bs;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 	}
 
 
@@ -392,9 +415,9 @@ public class XURLConnectionTool {
 		return Content;
 	}
 	public static String get(URLConnection con , String encode,  int ConnectTimeout, int ReadTimeout, String data) throws IOException {
-		ByteArrayOutputStreamUtils byteoutput = new ByteArrayOutputStreamUtils();
+		XNsByteArrayOutputStream byteoutput = new XNsByteArrayOutputStream();
 		get(con, ConnectTimeout, ReadTimeout, new UA(data), byteoutput, false);
-		if (encode != null)
+		if (null != encode)
 			return new String(byteoutput.toByteArray(), encode);
 		return new String(byteoutput.toByteArray());
 	}
@@ -429,9 +452,9 @@ public class XURLConnectionTool {
 		return Content;
 	}
 	public static String post(URLConnection con, String encode, int ConnectTimeout, int ReadTimeout, String ua, InputStream postdata) throws IOException {
-		ByteArrayOutputStreamUtils byteoutput = new ByteArrayOutputStreamUtils();
+		XNsByteArrayOutputStream byteoutput = new XNsByteArrayOutputStream();
 		post(con, ConnectTimeout, ReadTimeout, new UA(ua), postdata, byteoutput, false);
-		if (encode != null)
+		if (null != encode)
 			return new String(byteoutput.toByteArray(), encode);
 		return new String(byteoutput.toByteArray());
 	}
@@ -446,11 +469,9 @@ public class XURLConnectionTool {
 		if (close)
 			get.disconnect();
 	}
-
-
-
-
-
+	
+	
+	
 	public static final int defaultConnectTimeout = 12000;
 	public static final int defaultReadTimeout = 6000;
 }

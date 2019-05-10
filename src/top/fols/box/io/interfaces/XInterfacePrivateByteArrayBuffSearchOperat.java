@@ -10,6 +10,4 @@ public interface XInterfacePrivateByteArrayBuffSearchOperat {
 	public int indexOfBuff(byte[] b, int start, int end);
 	public int lastIndexOfBuff(byte b, int start, int end);
 	public int lastIndexOfBuff(byte[] b, int start, int end);
-
-
 }

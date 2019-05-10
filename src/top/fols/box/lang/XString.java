@@ -1,24 +1,33 @@
 package top.fols.box.lang;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import top.fols.box.statics.XStaticBaseType;
-import top.fols.box.util.ArrayListUtils;
-import top.fols.box.util.XArrays;
+import top.fols.box.statics.XStaticFixedValue;
+import top.fols.box.util.XArray;
 import top.fols.box.util.XObjects;
 import top.fols.box.util.XRandom;
+
 public class XString {
+	public static final String Number = "0123456789";
+	public static final String LowerCaseAlphabet = "abcdefghijklnmopqrstuvwxyz";
+	public static final String CapitalAlphabet = "ABCDEFGHIJKLNMOPQRSTUVWXYZ";
+
 	public static String getRandomString(char[] str, int length) {
-		if (length == 0)
-			return "";
+		if (length == 0) return "";
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < length; i++)
-			sb.append(str[XRandom.getRandomInt(0,length - 1)]);
+		for (int i = 0; i < length; i++) sb.append(str[XRandom.getRandomInt(0, str.length - 1)]);
 		return sb.toString();
 	}
-
-
-
+	public static String getRandomString(CharSequence str, int length) {
+		if (length == 0) return "";
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < length; i++) sb.append(str.charAt(XRandom.getRandomInt(0, str.length() - 1)));
+		return sb.toString();
+	}
+	
+	
+	
 	//替换字符串  i代表替换次数
 	public static String replace(String str, CharSequence target, CharSequence replacement) {
 		return replace(str, target, replacement, -1);
@@ -54,17 +63,17 @@ public class XString {
 
 
 	//获取str 出现的位置集合
-	public static List<Integer> indexOfs(String Stringx, String str) {
-		List<Integer> arraylist = new ArrayListUtils<Integer>();
-		if (XObjects.isEmpty(Stringx) || XObjects.isEmpty(str))
+	public static List<Integer> indexOfs(String str, String element) {
+		List<Integer> arraylist = new ArrayList<Integer>();
+		if (XObjects.isEmpty(str) || XObjects.isEmpty(element))
 			return arraylist;
-		int strlength = str.length();
-		int indexOf = Stringx.indexOf(str);
+		int strlength = element.length();
+		int indexOf = str.indexOf(element);
 		if (indexOf <= -1)
 			return arraylist;
-		do{
+		do {
 			arraylist.add(indexOf);
-		}while((indexOf = Stringx.indexOf(str, indexOf + strlength)) > -1);
+		} while((indexOf = str.indexOf(element, indexOf + strlength)) > -1);
         return arraylist;
 	}
 	//获取str重复出现的次数
@@ -81,6 +90,7 @@ public class XString {
 		}while((indexOf = Stringx.indexOf(str, indexOf + strlength)) > -1);
         return i;
     }
+
 
 	public static String submiddle(String str, String left, String right) {
 		return submiddle(str, left, right, 0);
@@ -104,7 +114,7 @@ public class XString {
 
 
 
-	
+
 	public static String subleft(String str, String string, int off) {
 		return subleft(str, str.indexOf(string, off));
 	}
@@ -140,7 +150,7 @@ public class XString {
 	 split("ab+cd+ef"); >> {"ab","cd",ef"}
 	 */
 	public static List<String> split(String Stringx, String str) {
-        List<String> arraylist = new ArrayListUtils<String>();
+        List<String> arraylist = new ArrayList<String>();
         if (XObjects.isEmpty(Stringx) || XObjects.isEmpty(str) || Stringx.equals(str))
 			return arraylist;
 		if (Stringx.startsWith(str))
@@ -164,22 +174,19 @@ public class XString {
 
 
 
-
-
-
-
-
-
 	/*
 	 repeat String
 	 取重复字符串
 	 */
 	public static String repeat(String str, int repeatLength) {
-		if (str == null || str.length() == 0)
+		if (null == str || str.length() == 0)
 			return "";
-		char newChar[] = (char[])XArrays.repeat(str.toCharArray(), XStaticBaseType.char_class, repeatLength);
+		char newChar[] = XArray.repeat(str.toCharArray(), repeatLength);
 		return new String(newChar);
 	}
+
+
+
 	/*
 	 fill String
 	 填充文本
@@ -194,7 +201,7 @@ public class XString {
 	}
 	public static void fillLeft(char[] str, char fillstr, char newChar[]) {
 		if (newChar.length == str.length) {
-			if(str == newChar)
+			if (str == newChar)
 				return;
 			System.arraycopy(str, 0, newChar, 0, str.length);
 			return;
@@ -226,7 +233,7 @@ public class XString {
 	}
 	public static void fillRight(char[] str, char fillstr, char newChar[]) {
 		if (newChar.length == str.length || (str.length == 0 && newChar.length == 0)) {
-			if(str == newChar)
+			if (str == newChar)
 				return;
 			System.arraycopy(str, 0, newChar, 0, str.length);
 			return;
@@ -241,4 +248,5 @@ public class XString {
 			Arrays.fill(newChar, str.length, newChar.length, fillstr);
 		}
 	}
+	
 }

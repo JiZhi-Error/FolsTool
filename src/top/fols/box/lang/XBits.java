@@ -1,10 +1,12 @@
 package top.fols.box.lang;
-import top.fols.box.annotation.XAnnotations;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import top.fols.box.annotation.XAnnotations;
+import top.fols.box.io.interfaces.XInterfaceGetOriginStream;
+import top.fols.box.io.interfaces.XInterfaceGetOriginStream;
 public class XBits {
-
-
+	
 	public static final int boolean_byte_length = 1;
 	public static final int char_byte_length = 2;
 	public static final int short_byte_length = 2;
@@ -106,12 +108,93 @@ public class XBits {
     }
 
 
-	public static class OutputStreamBits {
-		private OutputStream os;
-		public void setOutputStream(OutputStream os) {
-			this.os = os;
+
+
+
+	public static class InputStreamBits <T extends InputStream> implements XInterfaceGetOriginStream<T>{
+		private T is;
+		public InputStreamBits(T os) {
+			this.is = os;
+		}
+		@Override
+		public T getStream(){return this.is;}
+		
+		
+		private byte[] b1 = new byte[1];
+		@XAnnotations("need length 1")
+		public boolean readBoolean(boolean val) throws IOException {
+			int read = is.read(b1);
+			if (read == -1)
+				throw new IOException("unable to get data");
+			if (read != boolean_byte_length)
+				throw new IOException(String.format("incomplete data, length=%s, need=%s", read, boolean_byte_length));
+			return getBoolean(b1, 0);
 		}
 
+		private byte[] b21 = new byte[2];
+		@XAnnotations("need length 2")
+		public char readChar() throws IOException {
+			int read = is.read(b21);
+			if (read == -1)
+				throw new IOException("unable to get data");
+			if (read != char_byte_length)
+				throw new IOException(String.format("incomplete data, length=%s, need=%s", read, char_byte_length));
+			return getChar(b21, 0);
+		}
+
+		private byte[] b22 = new byte[2];
+		@XAnnotations("need length 2")
+		public short readShort(short val) throws IOException {
+			int read = is.read(b22);
+			if (read == -1)
+				throw new IOException("unable to get data");
+			if (read != short_byte_length)
+				throw new IOException(String.format("incomplete data, length=%s, need=%s", read, short_byte_length));
+			return getShort(b22, 0);
+		}
+		private byte[] b41 = new byte[4];
+		@XAnnotations("need length 4")
+		public int readInt() throws IOException {
+			int read = is.read(b41);
+			if (read == -1)
+				throw new IOException("unable to get data");
+			if (read != int_byte_length)
+				throw new IOException(String.format("incomplete data, length=%s, need=%s", read, int_byte_length));
+			return getInt(b41, 0);
+		}
+
+		@XAnnotations("need length 4")
+		public float readFloat() throws IOException {
+			return Float.intBitsToFloat(readInt());
+		}
+
+		private byte[] b81 = new byte[8];
+		@XAnnotations("need length 8")
+		public long readLong() throws IOException {
+			int read = is.read(b81);
+			if (read == -1)
+				throw new IOException("unable to get data");
+			if (read != long_byte_length)
+				throw new IOException(String.format("incomplete data, length=%s, need=%s", read, long_byte_length));
+			return getLong(b81, 0);
+		}
+		@XAnnotations("need length 8")
+		public double readDouble() throws IOException {
+			return Double.longBitsToDouble(readLong());
+		}
+	}
+
+
+
+	public static class OutputStreamBits <T extends OutputStream> implements XInterfaceGetOriginStream<T>{
+		private T os;
+		public OutputStreamBits(T os) {
+			this.os = os;
+		}
+		@Override
+		public T getStream(){ return this.os;}
+		
+		
 		@XAnnotations("need length 1")
 		public void writerBoolean(boolean val) throws IOException {
 			os.write((byte) (val ? 1 : 0));

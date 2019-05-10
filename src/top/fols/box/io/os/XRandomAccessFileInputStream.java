@@ -1,11 +1,12 @@
 package top.fols.box.io.os;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
+import top.fols.box.annotation.XAnnotations;
 import top.fols.box.io.interfaces.XInterfaceRandomAccessInputStream;
 import top.fols.box.statics.XStaticFixedValue;
 
+@XAnnotations("RandomAccessFile mode r")
 public class XRandomAccessFileInputStream extends XInterfaceRandomAccessInputStream {
 	@Override
 	public int hashCode() {
@@ -32,10 +33,10 @@ public class XRandomAccessFileInputStream extends XInterfaceRandomAccessInputStr
 		this(new RandomAccessFile(file, mode));
 	}
 	public XRandomAccessFileInputStream(String file) throws java.io.FileNotFoundException, IOException {
-		this(new RandomAccessFile(file, XStaticFixedValue.FileValue.getRandomAccessFile_Mode_R_String()));
+		this(new RandomAccessFile(file, XStaticFixedValue.FileOptMode.r()));
 	}
     public XRandomAccessFileInputStream(File file) throws java.io.FileNotFoundException, IOException {
-		this(new RandomAccessFile(file, XStaticFixedValue.FileValue.getRandomAccessFile_Mode_R_String()));
+		this(new RandomAccessFile(file, XStaticFixedValue.FileOptMode.r()));
 	}
 	public XRandomAccessFileInputStream(RandomAccessFile f) {
 		this.stream = f;

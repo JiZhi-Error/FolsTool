@@ -1,14 +1,7 @@
 package top.fols.box.lang;
 public abstract class XMath {
+	
 	//获取从左到右数第几位数
-	/*
-	 StringBuilder buf = new StringBuilder();
-	 int it;
-	 for (it = 1;it <= XMath.getNumLength(Long.MAX_VALUE) - 1;it++) 
-	 buf.append("else if(bit == " + (it) + ")\treturn (num % " + XString.fillRight("1", '0', it + 1) + "L)/" + XString.fillRight("1", '0', it) + "L;\n");
-	 buf.append("return num / " + XString.fillRight("1", '0', it) + "L;");
-	 System.out.println(buf);
-	 */
 	public static long getBit(long num, long bit) {
 		num = num < 0 ? -num : num;
 		if 		(bit == 1)	return (num % 10L) / 1L;
@@ -38,27 +31,31 @@ public abstract class XMath {
 			len++;
 		return len;
 	}
+	
+	
+	
 	//整数反转
 	public static long reverse(long x) {
-        long res = 0;
-        for (;x != 0;x /= 10)
-            res = res * 10 + x % 10;
-        return res;
+        long result = 0;
+        while (x != 0) {
+            long mod = x % 10;
+            x = x / 10;  
+            if (result > Long.MAX_VALUE / 10 || result < Long.MIN_VALUE / 10)
+                return 0;
+            result = result * 10 + mod;  
+        }
+        return result;
     }
-	//把long分割为long[]
-	public static long[] splitLongSingerChar(long l) {
-		if (l > -10 && l < 10)
-			return new long[]{l};
-		int length = getNumLength(l);
-		long[] newlong = new long[length];
-		for (int i = newlong.length - 1;i >= 0;i--)
-			newlong[i] = getBit(l, newlong.length - i);
-		return newlong;
-	}
-
-
-
-
-
+	public static int reverse(int x) {
+        int result = 0;
+        while (x != 0) {
+            int mod = x % 10;
+            x = x / 10;  
+            if (result > Integer.MAX_VALUE / 10 || result < Integer.MIN_VALUE / 10)
+                return 0;
+            result = result * 10 + mod;  
+        }
+        return result;
+    }
 
 }

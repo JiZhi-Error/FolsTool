@@ -4,13 +4,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
 public class XStaticBaseType {
-	public final static Object NULL = null;
-	public final static boolean TRUE = true;
-	public final static boolean FALSE = false;
-
-	public final static Boolean BTRUE = true;
-	public final static Boolean BFALSE = false;
-
 	public static final Class byte_class = byte.class;
 	public static final Class long_class = long.class;
 	public static final Class double_class = double.class;
@@ -75,8 +68,15 @@ public class XStaticBaseType {
 	public final static Boolean Boolean_defaultValue = false;
 	public final static Float Float_defaultValue = 0F;
 	public final static Short Short_defaultValue = 0;
+	
+	
+	public final static Object NULL = null;
+	
+	public final static boolean boolean_true = true;
+	public final static boolean boolean_false = false;
 
-
+	public final static Boolean Boolean_TRUE = true;
+	public final static Boolean Boolean_FALSE = false;
 	public static Byte toByte(byte obj) {
 		return (Byte)obj;
 	}
@@ -132,58 +132,5 @@ public class XStaticBaseType {
 
 
 
-	public static boolean isBaseClassName(String Addres) {
-		if (Addres.equals(byte_classcanonicalname)
-			|| Addres.equals(char_classcanonicalname) 
-			|| Addres.equals(double_classcanonicalname)
-			|| Addres.equals(float_classcanonicalname) 
-			|| Addres.equals(int_classcanonicalname)
-			|| Addres.equals(long_classcanonicalname)
-			|| Addres.equals(short_classcanonicalname)
-			|| Addres.equals(boolean_classcanonicalname)
-			|| Addres.equals(void_classcanonicalname)
-			)
-			return true;
-		return false;
-	}
-	public static Class forName(String Addres) {
-		if (Addres.equals(byte_classcanonicalname))
-			return byte_class;
-		else if (Addres.equals(char_classcanonicalname))
-			return char_class;
-		else if (Addres.equals(double_classcanonicalname))
-			return double_class;
-		else if (Addres.equals(float_classcanonicalname))
-			return float_class;
-		else if (Addres.equals(int_classcanonicalname))
-			return int_class;
-		else if (Addres.equals(long_classcanonicalname))
-			return long_class;
-		else if (Addres.equals(short_classcanonicalname))
-			return short_class;
-		else if (Addres.equals(boolean_classcanonicalname))
-			return boolean_class;
-		else if (Addres.equals(void_classcanonicalname))
-			return void_class;
-		return null;
-	}
-	public static Class toPackageClass(Class c2) {
-		if (c2 == boolean.class)
-			return Boolean.class;
-		else if (c2 == byte.class)
-			return Byte.class;
-		else if (c2 == char.class)
-			return Character.class;
-		else if (c2 == double.class)
-			return Double.class;
-		else if (c2 == float.class)
-			return Float.class;
-		else if (c2 == int.class)
-			return Integer.class;
-		else if (c2 == long.class)
-			return Long.class;
-		else if (c2 == short.class)
-			return Short.class;
-		return c2;
-	}
+	
 }

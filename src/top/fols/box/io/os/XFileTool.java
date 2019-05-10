@@ -3,23 +3,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.Collator;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import top.fols.box.annotation.XAnnotations;
-import top.fols.box.lang.XString;
-import top.fols.box.statics.XStaticBaseType;
+import top.fols.box.io.XStream;
+import top.fols.box.io.base.ns.XNsCharArrayWriter;
+import top.fols.box.lang.XUnitConversion;
 import top.fols.box.statics.XStaticFixedValue;
-import top.fols.box.util.ArrayListUtils;
-import top.fols.box.util.XArrays;
-import top.fols.box.util.XMap;
 import top.fols.box.util.XObjects;
 public class XFileTool {
-	public static void newFile(File file) throws IOException {
-		if (file == null)
-			throw new NullPointerException("file param for null");
+	public static void openFile(File file) throws IOException {
+		if (null == file)
+			throw new NullPointerException("file for null");
 		try {
 			if (!file.exists())
 				if (!file.createNewFile())
@@ -33,7 +30,6 @@ public class XFileTool {
 			throw e;
 		}
 	}
-
 	public static byte[] readFile(File file) {
 		if (!file.exists())
 			return XStaticFixedValue.nullbyteArray;
@@ -41,7 +37,7 @@ public class XFileTool {
 		byte[] fileBytes;
 		long length;
 		try { 
-			randomFile = new RandomAccessFile(file, "r");
+			randomFile = new RandomAccessFile(file, XStaticFixedValue.FileOptMode.r());
 			length = randomFile.length();
 			if (length > Integer.MAX_VALUE)
 				throw new OutOfMemoryError("overflow memory file length > " + Integer.MAX_VALUE);
@@ -52,28 +48,28 @@ public class XFileTool {
 			return XStaticFixedValue.nullbyteArray;
 		} finally {
 			try {
-				if (randomFile != null)
+				if (null != randomFile)
 					randomFile.close();
 			} catch (Exception e) {
 				randomFile = null;
 			}
 		}
 	}
-	public static void clearFile(File file) throws IOException {
+	public static void reCreateFile(File file) throws IOException {
 		if (!file.exists())
 			return;
 		file.delete();
-		newFile(file);
+		openFile(file);
 	}
 	public static boolean saveFile(File file, byte[] bytes) throws IOException {
-		newFile(file);
-		if (bytes == null || bytes.length == 0) {
-			clearFile(file);
+		openFile(file);
+		if (null == bytes || bytes.length == 0) {
+			reCreateFile(file);
 			return true;
 		}
 		RandomAccessFile randomFile = null;
 		try { 
-			randomFile = new RandomAccessFile(file, "rws");
+			randomFile = new RandomAccessFile(file, XStaticFixedValue.FileOptMode.rws());
 			randomFile.write(bytes);
 			randomFile.setLength(bytes.length);
 			return true;
@@ -81,228 +77,304 @@ public class XFileTool {
 			return false;
 		} finally {
 			try {
-				if (randomFile != null)
+				if (null != randomFile)
 					randomFile.close();
 			} catch (Exception e) {
 				randomFile = null;
 			}
 		}
 	}
-
-
-
-
-	private static final String[] formatSize = new String[]{"B","KB","MB","GB","TB","PB","EB","ZB","YB","BB","NB","DB","CB"};
-	public static String fileFormatSize(String size) {
-		return fileFormatSize(size, formatSize);
+	public static void writeNullDataFile(File file, long length) throws IOException {
+		writeNullDataFile(file, 0, length);
 	}
-	public static String fileFormatSize(String size, String[] formatSize) {
-		return fileFormatSize(size, formatSize, 1024);
+	public static void writeNullDataFile(File file, long start, long length) throws IOException {
+		XRandomAccessFileOutputStream out = new XRandomAccessFileOutputStream(file);
+		writeNullDataFile0(out, start, length);
+		out.close();
 	}
-	public static String fileFormatSize(String size, String[] formatSize, double PerUnitLength) {
-		if (formatSize == null || formatSize.length == 0)
-			throw new RuntimeException("size unit for null");
-		int i = 0;
-		if (size == null)
-			return 0 + formatSize[i];
-		BigDecimal perUnitLengthBigDecimal = new BigDecimal(PerUnitLength);
-		if (new BigDecimal(size).compareTo(perUnitLengthBigDecimal) == -1)
-			return size + formatSize[i];
-		BigDecimal kiloByte = new BigDecimal(size).divide(perUnitLengthBigDecimal, 4, RoundingMode.DOWN);
-		BigDecimal tmp;
-		while (kiloByte.compareTo(BigDecimal.ZERO) == 1) {
-			if (i + 1 > formatSize.length - 1)
-				break;
-			i++;
-			tmp = kiloByte.divide(perUnitLengthBigDecimal, 4, RoundingMode.DOWN);
-			if (tmp.compareTo(BigDecimal.ONE) == -1)
-				break;//<1
-			kiloByte = tmp;
+	private static void writeNullDataFile0(XRandomAccessFileOutputStream out, long start, long length) throws IOException {
+		out.setLength(start + length);
+		out.seekIndex(start);
+		int bufs = XStream.defaultStreamByteArrBuffSize;
+		if (length <= bufs) {
+			byte[] bf = new byte[(int)length];
+			out.write(bf);
+			bf = null;
+		} else {
+			byte[] bs = new byte[bufs];
+			long needWriter = length;
+			while (true) {
+				if (needWriter < bufs) {
+					byte[] bf = new byte[(int)needWriter];
+					out.write(bf);
+					bf = null;
+					needWriter = 0;
+					break;
+				} else {
+					out.write(bs);
+					needWriter -= bufs;
+					if (needWriter <= 0)
+						break;
+				}
+			}
 		}
-		return kiloByte.toString() + formatSize[i];
 	}
 
 
-	public static String fileFormatSize(double size) {
-		return fileFormatSize(size, formatSize);
+
+
+	@XAnnotations("1B = 8bit")
+	public static final String[] fileUnit = new String[]{
+		"B","KB","MB",
+		"GB","TB","PB",
+		"EB","ZB","YB",
+		"BB","NB","DB",
+		"CB"
+	};
+	public static final BigDecimal[] fileUnitSize = new BigDecimal[]{
+		new BigDecimal(1024D),new BigDecimal(1024D),new BigDecimal(1024D),
+		new BigDecimal(1024D),new BigDecimal(1024D),new BigDecimal(1024D),
+		new BigDecimal(1024D),new BigDecimal(1024D),new BigDecimal(1024D),
+		new BigDecimal(1024D),new BigDecimal(1024D),new BigDecimal(1024D),
+		new BigDecimal(1024D)
+	};
+	public static String fileUnitFormat(String bytelength) {
+		return fileUnitFormat(bytelength, true);
 	}
-	public static String fileFormatSize(double size, String[] formatSize) {
-		return fileFormatSize(size, formatSize, 1024);
+	public static String fileUnitFormat(String bytelength, boolean round) {
+		return XUnitConversion.unitCalc(bytelength, fileUnit, 0, fileUnitSize, round, 2);
 	}
-	public static String fileFormatSize(double size, String[] formatSize, double PerUnitLength) {
-		if (formatSize == null || formatSize.length == 0)
-			throw new RuntimeException("size unit for null");
-		int i = 0;
-		if (size < PerUnitLength)
-			return Double.toString(size) + formatSize[i];
-		double Decimal1024 = PerUnitLength;
-		double kiloByte = size / Decimal1024;
-		double tmp;
-		while (kiloByte > 0) {
-			if (i + 1 > formatSize.length - 1)
-				break;
-			i++;
-			tmp = kiloByte / Decimal1024;
-			if (tmp < 1)
-				break;//<1
-			kiloByte = tmp;
-		}
-		return Double.toString(kiloByte) + formatSize[i];
+	public static String fileUnitFormat(double size) {
+		return fileUnitFormat(size, true, 2);
+	}
+	public static String fileUnitFormat(double size, boolean round, int scale) {
+		return XUnitConversion.unitCalc(size, fileUnit, 0, 1024, round, 2);
 	}
 
 
 
 
 	/*
-	 Get Canonical Path 
 	 文件获取绝对地址
-	 getCanonicalPath("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();").equals(new File("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();").getCanonicalPath()); >> true
-	 getCanonicalPath("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();"); >> "/XSt/*?:]/tt/a/b/v/x/a/v**v/();"
+	 getFormatPath("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();").equals(new File("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();").getCanonicalPath()); >> true
+	 getFormatPath("//XSt/*?:]/tt/////.//./././a/b/v//x//a/v**v//n///...//../../();"); >> "/XSt/*?:]/tt/a/b/v/x/a/v**v/();"
 	 */
-	public static String getCanonicalPath(String pathname) {
-		if (pathname == null)
-			return null;
-		String name;
-		List<String> Split = XString.split(pathname, File.separator);
-		if (Split.size() == 0)
-			return pathname;
-		StringBuilder path = new StringBuilder();
-		for (int i = 0;i < Split.size();i++) {
-			name = Split.get(i);
-			if (name.equals("..")) {
-				Split.set(i, File.separator);
-				for (int i2 = i;i2 >= 0;i2--) {
-					name = Split.get(i2);
-					if (name != null && !name.equals("") && !name.equals(File.separator) && !name.equals(".") && !name.equals("..")) {
-						Split.set(i2, File.separator);
-						break;
-					}
-				}
-			} else if (name.equals(".")) {
-				Split.set(i, File.separator);
-			}
-		}
-		for (int i = 0;i < Split.size();i++) {
-			name = Split.get(i);
-			if (name != null && !name.equals("") && !name.equals(File.separator) && !name.equals(".") && !name.equals("..")) {
-				path.append(File.separator);
-				path.append(name);
-			}
-		}
-		return path.toString();
+	public static String getFormatPath(String path) {
+		return getFormatPath(path, File.separatorChar);
 	}
+	public static String getFormatPath(String orginPath, char separatorChar) {
+		if (orginPath.length() == 0)
+			return Character.toString(separatorChar);
+		XNsCharArrayWriter buf  = new XNsCharArrayWriter();
+
+		StringBuilder path;
+		path = new StringBuilder();
+		path.append(separatorChar);
+		int pathsize = orginPath.length();
+		boolean lastSplitChar = true;
+		int i = 0;
+		if (orginPath.charAt(0) == separatorChar)
+			i = 1;
+		for (;i < pathsize;i++) {
+			if (orginPath.charAt(i) == separatorChar) {
+				if (!lastSplitChar)
+					path.append(separatorChar);
+				lastSplitChar = true;
+				continue;
+			} else {
+				lastSplitChar = false;
+				path.append(orginPath.charAt(i));
+			}
+		}
+		int length = path.length();
+		int absInd = 0;
+		for (int ind = 0;ind < length;) {
+			char c = path.charAt(ind);
+			if (c == separatorChar) {
+				if (ind + 2 < length && 
+					path.charAt(ind + 1) == '.' &&
+					path.charAt(ind + 2) == separatorChar) {
+					//	/./
+					ind += 2;
+					continue;
+				} else if (ind + 3 < length && 
+						   path.charAt(ind + 1) == '.'  && 
+						   path.charAt(ind + 2) == '.' && 
+						   path.charAt(ind + 3) == separatorChar) {
+					//	/../
+					int last = buf.lastIndexOfBuff(separatorChar, absInd - 1, 0);
+					//System.out.println(buf.toString() + "(" + absInd + ")" + "-" + "(" + last + ")");
+					if (last >= 0) {
+						buf.seekIndex(last);
+						absInd = last;
+					} else {
+						buf.seekIndex(0);
+						absInd = 0;
+					}
+					ind += 3;//
+					continue;
+				} 
+			} 
+			buf.write(c);
+			ind += 1;
+			absInd += 1;
+		}
+		int size = buf.size();
+		if (size >= 3 &&
+			buf.getBuff()[size - 3] == separatorChar  &&
+			buf.getBuff()[size - 2] == '.' &&
+			buf.getBuff()[size - 1] == '.') {
+			int last = buf.lastIndexOfBuff(separatorChar, size - 3 - 1, 0);
+			if (last > -1) {
+				buf.setBuffSize(last + 1);
+			} else {
+				buf.setBuffSize(0);
+				buf.write(separatorChar);
+			}
+		} else if (size >= 2 &&
+				   buf.getBuff()[size - 2] == separatorChar  &&
+				   buf.getBuff()[size - 1] == '.') {
+			buf.setBuffSize(buf.size() - 1);
+		} 
+		String result;
+		if (buf.size() >= 1 && buf.getBuff()[0] != separatorChar) {
+			result = new StringBuilder(separatorChar)
+				.append(buf.getBuff(), 0, buf.size())
+				.toString();
+		} else {
+			result = new String(buf.getBuff(), 0, buf.size());
+		}
+		buf.releaseBuffer();
+		path = null;
+		return result;
+	}
+
+
+
+	/*
+	 get Extension Name
+	 得到扩展名
+	 */
+	public static String getExtensionName(String fileCanonicalPath, char separatorChar) { 
+		if ((null != fileCanonicalPath) && (fileCanonicalPath.length() > 0)) { 
+			int dot = fileCanonicalPath.lastIndexOf('.'); 
+            if ((dot > fileCanonicalPath.lastIndexOf(separatorChar)) && (dot > -1) && (dot < (fileCanonicalPath.length() - 1))) { 
+                return fileCanonicalPath.substring(dot + 1, fileCanonicalPath.length()); 
+            } 
+        } 
+        return null; 
+    } 
+	public static String getExtensionName(String fileCanonicalPath) { 
+		return getExtensionName(fileCanonicalPath, File.separatorChar);
+	}
+	/*
+	 get Name
+	 获得 文件名 带后缀
+	 */
+	public static String getName(String fileCanonicalPath, char separatorChar) { 
+        if ((null != fileCanonicalPath) && (fileCanonicalPath.length() > 0)) { 
+            int dot = fileCanonicalPath.lastIndexOf(separatorChar);
+			if (dot + 1 < fileCanonicalPath.length()) { 
+				return fileCanonicalPath.substring(dot + 1, fileCanonicalPath.length()); 
+            }
+        } 
+        return null; 
+    } 
+	public static String getName(String fileCanonicalPath) { 
+		return getName(fileCanonicalPath, File.separatorChar);
+	}
+	/*
+	 get Name No Ex
+	 获得文件名不带扩展名 不带路径
+	 */
+	public static String getNameNoExtension(String fileCanonicalPath, char separatorChar) { 
+        if ((null != fileCanonicalPath) && (fileCanonicalPath.length() > 0)) { 
+            int dot = fileCanonicalPath.lastIndexOf(separatorChar);
+			if (dot + 1 < (fileCanonicalPath.length())) { 
+				fileCanonicalPath = fileCanonicalPath.substring(dot + 1, fileCanonicalPath.length()); 
+				int dot2 = fileCanonicalPath.lastIndexOf('.');
+				if (dot2 > -1) {
+					return fileCanonicalPath.substring(0, dot2);
+				} else {
+					return fileCanonicalPath;
+				}
+            }
+        } 
+        return null; 
+    } 
+	public static String getNameNoExtension(String fileCanonicalPath) {
+		return getNameNoExtension(fileCanonicalPath, File.separatorChar);
+	}
+
+
+
+
 
 
 	/*
 	 Get Dir File List
 	 获取文件夹文件列表
-
 	 Parameter:filePath 路径,recursion 递增搜索,adddir 列表是否添加文件夹
 	 */
 	public static List<String> getFileList(String filePath, boolean recursion, boolean adddir) throws IOException {
-		return getFilesList(new File(filePath) , recursion, adddir, null);
+		List<String> List = new ArrayList<>();
+		return getFilesList(List, new File(filePath) , recursion, adddir, new StringBuilder());
     }
-	private static List<String> getFilesList(File filePath, boolean recursion, boolean adddir, String rootpath) throws IOException {
-		List<String> result = new ArrayListUtils<String>();
-		if (rootpath == null)
-			rootpath = filePath.getCanonicalPath();
-		if (!rootpath.endsWith(File.separator))
-			rootpath += File.separator;
+	private static List<String> getFilesList(List<String> list, File filePath, boolean recursion, boolean adddir, StringBuilder baseDir) throws IOException {
 		File[] files = filePath.listFiles();
-		for (File file : files) {
-			String path = file.getCanonicalPath();
-			if (path.startsWith(rootpath))
-				path = path.substring(rootpath.length(), path.length());
-			if (file.isDirectory()) {
-				if (recursion)
-					result.addAll(getFilesList(file.getCanonicalFile(), true, adddir, rootpath));
-				if (adddir)
-					result.add(path + File.separator);
-			} else {
-				result.add(path) ;
+		if (null != files)
+			for (File file : files) {
+				if (null == file)
+					continue;
+				String name = file.getName();
+				if (file.isDirectory()) {
+					if (recursion) {
+						getFilesList(list, file.getCanonicalFile(), true, adddir, new StringBuilder(baseDir).append(name).append(File.separator));
+					}	
+					if (adddir) {
+						list.add(new StringBuilder(baseDir).append(name).append(File.separator).toString());
+					}
+				} else {
+					list.add(new StringBuilder(baseDir).append(name).toString()) ;
+				}
 			}
-		}
-		return result;
+		return list;
     }
 
 
 
 
-	private static final Map<String,Boolean> defaultExtensionName;
-	final static
-	{
-		defaultExtensionName = new XMap<Boolean>();
-		defaultExtensionName.put("*", true);
-	}
-	public static String[] getFileList2(File Dir, @XAnnotations("Dir is shown at the top") boolean DirTop, @XAnnotations("extensionName * representative all files")  Map<String,Boolean> extensionName, @XAnnotations("showHideFile.")boolean showHideFile) {
-		String[] list = new String []{};
-		try {
-			if (extensionName == null)
-				extensionName =  defaultExtensionName;
-
-			File[] arrStrings = Dir.listFiles();
-
-			List<String> fileaddres = new ArrayListUtils<String>();
-			List<String> fileaddresDir = new ArrayListUtils<String>();
-
-			String file;
-			if (!DirTop) {
-				for (int i = 0; i < arrStrings.length; i++) {
-					if (arrStrings[i].isDirectory()) {
-						file = arrStrings[i].getName() + File.separator;
-						if (!showHideFile && arrStrings[i].isHidden())
-							continue;
-						fileaddresDir.add(file);
-					} else {
-						file = arrStrings[i].getName();
-						if (!showHideFile && arrStrings[i].isHidden())
-							continue;
-						Boolean BooleanObject;
-						String extensionFileName = new XFile(file).getExtensionName();
-						boolean all = (BooleanObject = extensionName.get("*")) == null ?false: BooleanObject.booleanValue() ;
-						boolean by = (BooleanObject = extensionName.get(extensionFileName)) == null ?false: BooleanObject.booleanValue();
-						if (by || all && !extensionName.containsKey(extensionFileName))
-							fileaddresDir.add(file);
+	public static List<String> listFilesSort(File filePath, boolean adddir) {
+		List<String> d = new ArrayList<>();
+		List<String> f = new ArrayList<String>();
+		File[] files = filePath.listFiles();
+		if (null != files)
+			for (File file : files) {
+				if (null == file)
+					continue;
+				String name = file.getName();
+				if (file.isDirectory()) {
+					if (adddir) {
+						d.add(new StringBuilder(name).append(File.separator).toString());
 					}
-				}
-			} else {
-				for (int i = 0; i < arrStrings.length; i++) {
-					if (arrStrings[i].isDirectory()) {
-						file  = arrStrings[i].getName() + File.separator;
-						if (!showHideFile && arrStrings[i].isHidden())
-							continue;
-						fileaddresDir.add(file);
-					} else {
-						file = arrStrings[i].getName();
-						if (!showHideFile && arrStrings[i].isHidden())
-							continue;
-						Boolean BooleanObject;
-						String extensionFileName = new XFile(file).getExtensionName();
-						boolean all = (BooleanObject = extensionName.get("*")) == null ?false: BooleanObject.booleanValue() ;
-						boolean by = (BooleanObject = extensionName.get(extensionFileName)) == null ?false: BooleanObject.booleanValue();
-						if (by || all && !extensionName.containsKey(extensionFileName))
-							fileaddres.add(file);
-					}
+				} else {
+					f.add(name) ;
 				}
 			}
-			// 使根据指定比较器产生的顺序对指定对象数组进行排序。 
-			Object[] fileTmpArray;
-
-			fileTmpArray = fileaddresDir.toArray();
-			Arrays.sort(fileTmpArray, Collator.getInstance(java.util.Locale.CHINA));
-			if (fileTmpArray.length > 0)
-				list = (String[])XArrays.addAll(list, list.length, fileTmpArray, XStaticBaseType.String_class);
-
-			fileTmpArray = fileaddres.toArray();
-			Arrays.sort(fileTmpArray, Collator.getInstance(java.util.Locale.CHINA));
-			if (fileTmpArray.length > 0)
-				list = (String[])XArrays.addAll(list, list.length, fileTmpArray, XStaticBaseType.String_class);
-
-			return list;
-		} catch (Exception e) {
-			return list;
+		files = null;
+		Collections.sort(d, Collator.getInstance(java.util.Locale.CHINA));
+		Collections.sort(f, Collator.getInstance(java.util.Locale.CHINA));
+		if (adddir) {
+			d.addAll(f);
+			f.clear();
+			return d;
+		} else {
+			d.clear();
+			return f;
 		}
-	}
+    }
+
+
 
 
 
@@ -317,24 +389,20 @@ public class XFileTool {
 	public static boolean isParentDirectory(File FilePath, File ParentDir) {
 		if (XObjects.isEmpty(FilePath) || XObjects.isEmpty(ParentDir))
 			return false;
-
 		String Parent;
 		try {
 			Parent = ParentDir.getCanonicalPath();
 		} catch (IOException e) {
 			Parent = ParentDir.getAbsolutePath();
 		}
-
 		if (!Parent.endsWith(File.separator))
 			Parent += File.separator;
-
 		String FileParent;
 		try {
 			FileParent = FilePath.getCanonicalPath();
 		} catch (IOException e) {
 			FileParent = FilePath.getAbsolutePath();
 		}
-
 		if (FileParent.startsWith(Parent) && ParentDir.exists())
 			return true;
 		return false;

@@ -6,4 +6,5 @@ public abstract class XInterfaceRandomAccessOutputStream extends OutputStream im
     public abstract void write(byte[] b, int off, int len) throws IOException;
 
 	public abstract long length() throws IOException;
+	public abstract void setLength(long length)throws IOException;
 }
